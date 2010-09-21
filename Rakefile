@@ -14,3 +14,6 @@ end
 
 # "rake clean" should also clean bundled hiredis
 Rake::Task[:clean].enhance(['hiredis:clean'])
+
+# Build from scratch
+task :build => [:clean, :compile]
