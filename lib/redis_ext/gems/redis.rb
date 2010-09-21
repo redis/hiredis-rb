@@ -2,13 +2,14 @@
 module RedisExt
   module Gems
     module Redis
-      module Client
+      module Apply
 
         # WARNING: This code is pre-alpha and patches the
         # Redis gem pretty bad. DON'T USE IN PRODUCTION!
 
         def self.included(base)
           base.class_eval do
+            alias :__read :read
             def read
               # Use sysread to stream data into the reader.
               while (reply = @reader.gets) === false
@@ -42,9 +43,30 @@ module RedisExt
         end
       end
 
-      def self.register!
+      module Unapply
+        def self.included(base)
+          base.class_eval do
+            alias :read :__read
+            undef_method :__read
+            alias :connect :__connect
+            undef_method :__connect
+            alias :disconnect :__disconnect
+            undef_method :__disconnect
+          end
+        end
+      end
+
+      def self.apply!
         ::Redis::Client.class_eval do
-          include Client
+          raise "Patch was already applied" if method_defined? :__read
+          include Apply
+        end
+      end
+
+      def self.unapply!
+        ::Redis::Client.class_eval do
+          raise "Patch was not yet applied" if !method_defined? :__read
+          include Unapply
         end
       end
 
