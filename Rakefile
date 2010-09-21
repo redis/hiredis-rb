@@ -2,7 +2,7 @@ require 'rake/gempackagetask'
 require 'rake/extensiontask'
 
 $:.unshift File.join(File.dirname(__FILE__), 'lib')
-require 'redis_ext'
+require 'redis_ext/version'
 
 GEM = 'redis_ext'
 GEM_VERSION = RedisExt::VERSION
