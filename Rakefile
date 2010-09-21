@@ -49,6 +49,7 @@ end
 
 namespace :hiredis do
   task :clean do
+    system("git submodule update --init")
     system("cd vendor/hiredis && make clean")
   end
 end
