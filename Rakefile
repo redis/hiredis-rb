@@ -16,7 +16,7 @@ spec = Gem::Specification.new do |s|
   s.version = GEM_VERSION
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
-  s.extra_rdoc_files = ["LICENSE"]
+  s.extra_rdoc_files = ["COPYING"]
   s.summary = SUMMARY
   s.description = s.summary
   s.authors = AUTHORS
@@ -31,7 +31,7 @@ spec = Gem::Specification.new do |s|
   hiredis_files = Dir.glob("vendor/hiredis/*") -
     Dir.glob("vendor/hiredis/lib*")
     Dir.glob("vendor/hiredis/*.o")
-  s.files = %w(LICENSE Rakefile) + ext_files + lib_files + hiredis_files
+  s.files = %w(COPYING Rakefile) + ext_files + lib_files + hiredis_files
 end
 
 desc "create a gemspec file"
