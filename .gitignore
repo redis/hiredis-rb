@@ -1,0 +1,5 @@
+*.rbc
+tmp/
+ext/**/*.log
+ext/**/Makefile
+ext/**/*.conf
