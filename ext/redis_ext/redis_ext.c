@@ -77,8 +77,11 @@ static VALUE reader_gets(VALUE klass) {
     VALUE reply;
 
     Data_Get_Struct(klass, void, reader);
-    reply = (VALUE)redisReplyReaderGetReply(reader);
-    return reply == 0 ? Qfalse : reply;
+    if (redisReplyReaderGetReply(reader,(void**)&reply) != REDIS_OK) {
+        char *errstr = redisReplyReaderGetError(reader);
+        rb_raise(rb_eRuntimeError, errstr);
+    }
+    return reply;
 }
 
 void Init_redis_ext() {
