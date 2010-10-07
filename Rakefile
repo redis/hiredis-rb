@@ -1,5 +1,6 @@
 require 'rake/gempackagetask'
 require 'rake/extensiontask'
+require 'rake/testtask'
 
 $:.unshift File.join(File.dirname(__FILE__), 'lib')
 require 'redis_ext/version'
@@ -59,3 +60,9 @@ Rake::Task[:clean].enhance(['hiredis:clean'])
 
 # Build from scratch
 task :build => [:clean, :compile]
+
+desc "Run tests"
+Rake::TestTask.new(:test) do |t|
+  t.libs << "test"
+  t.pattern = 'test/**/*_test.rb'
+end
