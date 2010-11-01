@@ -9,7 +9,7 @@ static VALUE klass_reader;
 
 /* Add VALUE to parent when the redisReadTask has a parent.
  * Note that the parent should always be of type T_ARRAY. */
-static void *tryParentize(redisReadTask *task, VALUE v) {
+static void *tryParentize(const redisReadTask *task, VALUE v) {
     if (task && task->parent != NULL) {
         VALUE parent = (VALUE)task->parent;
         assert(TYPE(parent) == T_ARRAY);
@@ -18,22 +18,22 @@ static void *tryParentize(redisReadTask *task, VALUE v) {
     return (void*)v;
 }
 
-static void *createStringObject(redisReadTask *task, char *str, size_t len) {
+static void *createStringObject(const redisReadTask *task, char *str, size_t len) {
     VALUE v = rb_str_new(str,len);
     return tryParentize(task,v);
 }
 
-static void *createArrayObject(redisReadTask *task, int elements) {
+static void *createArrayObject(const redisReadTask *task, int elements) {
     VALUE v = rb_ary_new2(elements);
     return tryParentize(task,v);
 }
 
-static void *createIntegerObject(redisReadTask *task, long long value) {
+static void *createIntegerObject(const redisReadTask *task, long long value) {
     VALUE v = LL2NUM(value);
     return tryParentize(task,v);
 }
 
-static void *createNilObject(redisReadTask *task) {
+static void *createNilObject(const redisReadTask *task) {
     return tryParentize(task,Qnil);
 }
 
@@ -41,7 +41,7 @@ static void freeObject(void *ptr) {
     /* Garbage collection will clean things up. */
 }
 
-static redisReplyFunctions redisFunctions = {
+static redisReplyObjectFunctions redisFunctions = {
     createStringObject,
     createArrayObject,
     createIntegerObject,

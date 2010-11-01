@@ -50,7 +50,10 @@ end
 
 namespace :hiredis do
   task :clean do
-    system("git submodule update --init")
+    # Fetch hiredis if not present
+    if !File.directory?("vendor/hiredis/.git")
+      system("git submodule init --init")
+    end
     system("cd vendor/hiredis && make clean")
   end
 end
