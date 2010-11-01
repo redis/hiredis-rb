@@ -1,6 +1,9 @@
+require 'rake'
 require 'rake/gempackagetask'
-require 'rake/extensiontask'
 require 'rake/testtask'
+
+gem 'rake-compiler', '~> 0.7.1'
+require "rake/extensiontask"
 
 $:.unshift File.join(File.dirname(__FILE__), 'lib')
 require 'redis_ext/version'
