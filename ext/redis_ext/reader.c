@@ -13,8 +13,12 @@ static void *tryParentize(const redisReadTask *task, VALUE v) {
 }
 
 static void *createStringObject(const redisReadTask *task, char *str, size_t len) {
-    VALUE v = rb_str_new(str,len);
-    return tryParentize(task,v);
+    VALUE obj, v = rb_str_new(str,len);
+    if (task->type == REDIS_REPLY_ERROR)
+        obj = rb_class_new_instance(1,&v,rb_eRuntimeError);
+    else
+        obj = v;
+    return tryParentize(task,obj);
 }
 
 static void *createArrayObject(const redisReadTask *task, int elements) {
