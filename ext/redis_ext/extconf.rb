@@ -1,5 +1,7 @@
 require 'mkmf'
 
+RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
+
 def need_header(*args)
   abort "\n--- #{args.first} is missing\n\n" if !find_header(*args)
 end
