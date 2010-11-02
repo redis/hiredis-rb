@@ -1,3 +1,4 @@
+#include <sys/socket.h>
 #include <errno.h>
 #include "redis_ext.h"
 
@@ -147,6 +148,24 @@ static VALUE connection_read(VALUE self) {
     return reply;
 }
 
+static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
+    redisParentContext *pc;
+    long int s = NUM2INT(usecs)/1000000;
+    long int us = NUM2INT(usecs)-(s*1000000);
+    struct timeval timeout = { s, us };
+
+    Data_Get_Struct(self,redisParentContext,pc);
+    if (!pc->context)
+        rb_raise(rb_eRuntimeError, "not connected");
+
+    if (setsockopt(pc->context->fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1)
+        rb_sys_fail(0);
+    if (setsockopt(pc->context->fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == -1)
+        rb_sys_fail(0);
+    return usecs;
+}
+
+
 VALUE klass_connection;
 VALUE error_eof;
 void InitConnection(VALUE mod) {
@@ -155,6 +174,7 @@ void InitConnection(VALUE mod) {
     rb_define_method(klass_connection, "connect", connection_connect, 2);
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
+    rb_define_method(klass_connection, "timeout=", connection_set_timeout, 1);
     rb_define_method(klass_connection, "write", connection_write, 1);
     rb_define_method(klass_connection, "read", connection_read, 0);
     error_eof = rb_define_class_under(klass_connection, "EOFError", rb_eStandardError);
