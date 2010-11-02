@@ -10,7 +10,7 @@ merged to master):
 ## WARNING
 
 This code is considered alpha. Do not use it for other purposes than
-testing _yet_.
+testing _yet_. Also, the API may be subject to change while in alpha.
 
 ## Install
 
@@ -27,15 +27,15 @@ This gem cannot be used with redis-rb out of the box _yet_.
 A connection to Redis can be opened by creating an instance of
 `RedisExt::Connection` and calling `#connect`:
 
-    conn = RedisExt::Connection.new
-    conn.connect("127.0.0.1", 6379)
+    > conn = RedisExt::Connection.new
+    > conn.connect("127.0.0.1", 6379)
 
 Commands can be written to Redis by calling `#write` with an array of
 arguments. You can call write more than once, resulting in a pipeline of
 commands.
 
-    conn.write ["SET", "speed", "awesome"]
-    conn.write ["GET", "speed"]
+    > conn.write ["SET", "speed", "awesome"]
+    > conn.write ["GET", "speed"]
 
 After commands are written, use `#read` to receive the subsequent replies.
 Make sure **not** to call `#read` more than you have replies to read, or
