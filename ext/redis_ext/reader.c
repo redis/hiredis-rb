@@ -79,10 +79,10 @@ static VALUE reader_gets(VALUE klass) {
     return reply;
 }
 
-VALUE InitReader(VALUE mod) {
-    VALUE klass = rb_define_class_under(mod, "Reader", rb_cObject);
-    rb_define_alloc_func(klass, reader_allocate);
-    rb_define_method(klass, "feed", reader_feed, 1);
-    rb_define_method(klass, "gets", reader_gets, 0);
-    return klass;
+VALUE klass_reader;
+void InitReader(VALUE mod) {
+    klass_reader = rb_define_class_under(mod, "Reader", rb_cObject);
+    rb_define_alloc_func(klass_reader, reader_allocate);
+    rb_define_method(klass_reader, "feed", reader_feed, 1);
+    rb_define_method(klass_reader, "gets", reader_gets, 0);
 }

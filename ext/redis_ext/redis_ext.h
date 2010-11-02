@@ -6,11 +6,11 @@
 
 /* Defined in redis_ext.c */
 extern VALUE mod_redis_ext;
-extern VALUE klass_reader;
 
 /* Defined in reader.c */
 extern redisReplyObjectFunctions redisExtReplyObjectFunctions;
-extern VALUE InitReader(VALUE module);
+extern VALUE klass_reader;
+extern void InitReader(VALUE module);
 
 /* Borrowed from Nokogiri */
 #ifndef RSTRING_PTR
