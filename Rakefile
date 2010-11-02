@@ -13,7 +13,7 @@ GEM_VERSION = RedisExt::VERSION
 AUTHORS = ['Pieter Noordhuis']
 EMAIL = "pcnoordhuis@gmail.com"
 HOMEPAGE = "http://github.com/pietern/redis-ruby-ext"
-SUMMARY = "Ruby extension that wraps hiredis reply parsing code"
+SUMMARY = "Ruby extension that wraps Hiredis (blocking connection and reply parsing)"
 
 spec = Gem::Specification.new do |s|
   s.name = GEM

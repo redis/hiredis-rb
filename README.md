@@ -20,8 +20,37 @@ Install with Rubygems:
 
 ## Usage
 
-This gem can be used by simply requiring it. When it is required _after_
-the `redis` gem is loaded, it automatically patches it to use `redis_ext`.
+This gem cannot be used with redis-rb out of the box _yet_.
+
+### Connection
+
+A connection to Redis can be opened by creating an instance of
+`RedisExt::Connection` and calling `#connect`:
+
+    conn = RedisExt::Connection.new
+    conn.connect("127.0.0.1", 6379)
+
+Commands can be written to Redis by calling `#write` with an array of
+arguments. You can call write more than once, resulting in a pipeline of
+commands.
+
+    conn.write ["SET", "speed", "awesome"]
+    conn.write ["GET", "speed"]
+
+After commands are written, use `#read` to receive the subsequent replies.
+Make sure **not** to call `#read` more than you have replies to read, or
+the connection will block indefinitely. You _can_ use this feature
+to implement a subscriber (for Redis Pub/Sub).
+
+    > conn.read
+    => "OK"
+    > conn.read
+    => "awesome"
+
+When the connection was closed by the server, an error of the type
+`RedisExt::Connection::EOFError` will be raised. For all I/O related errors,
+the Ruby built-in `Errno::*` errors will be raised. All other errors
+(such as a protocol error) result in a `RuntimeError`.
 
 ## Benchmarks
 
