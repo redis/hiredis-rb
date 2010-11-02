@@ -115,6 +115,34 @@ static VALUE connection_write(VALUE self, VALUE command) {
     return Qnil;
 }
 
+static int __get_reply(redisParentContext *pc, VALUE *reply) {
+    redisContext *c = pc->context;
+    int wdone = 0;
+    void *aux = NULL;
+
+    /* Try to read pending replies */
+    if (redisGetReplyFromReader(c,&aux) == REDIS_ERR)
+        return -1;
+
+    if (aux == NULL) {
+        do { /* Write until done */
+            if (redisBufferWrite(c,&wdone) == REDIS_ERR)
+                return -1;
+        } while (!wdone);
+        do { /* Read until there is a reply */
+            rb_thread_wait_fd(c->fd);
+            if (redisBufferRead(c) == REDIS_ERR)
+                return -1;
+            if (redisGetReplyFromReader(c,&aux) == REDIS_ERR)
+                return -1;
+        } while (aux == NULL);
+    }
+
+    /* Set reply object */
+    if (reply != NULL) *reply = (VALUE)aux;
+    return 0;
+}
+
 static VALUE connection_read(VALUE self) {
     redisParentContext *pc;
     VALUE reply;
@@ -125,7 +153,7 @@ static VALUE connection_read(VALUE self) {
     if (!pc->context)
         rb_raise(rb_eRuntimeError, "not connected");
 
-    if (redisGetReply(pc->context,(void**)&reply) != REDIS_OK) {
+    if (__get_reply(pc,&reply) == -1) {
         /* Copy error and free context */
         err = pc->context->err;
         snprintf(errstr,sizeof(errstr),"%s",pc->context->errstr);
