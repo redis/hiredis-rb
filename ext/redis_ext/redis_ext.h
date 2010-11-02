@@ -12,6 +12,11 @@ extern redisReplyObjectFunctions redisExtReplyObjectFunctions;
 extern VALUE klass_reader;
 extern void InitReader(VALUE module);
 
+/* Defined in connection.c */
+extern VALUE klass_connection;
+extern VALUE error_eof;
+extern void InitConnection(VALUE module);
+
 /* Borrowed from Nokogiri */
 #ifndef RSTRING_PTR
 #define RSTRING_PTR(s) (RSTRING(s)->ptr)
