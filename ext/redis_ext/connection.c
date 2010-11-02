@@ -109,7 +109,7 @@ static VALUE connection_write(VALUE self, VALUE command) {
         argv[i] = RSTRING_PTR(arg);
         alen[i] = RSTRING_LEN(arg);
     }
-    redisAppendCommandArgv(pc->context,argc,argv,alen);
+    redisAppendCommandArgv(pc->context,argc,(const char**)argv,alen);
     free(argv);
     free(alen);
     return Qnil;
