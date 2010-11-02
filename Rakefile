@@ -30,11 +30,12 @@ spec = Gem::Specification.new do |s|
   s.autorequire = GEM
   s.extensions = FileList["ext/**/extconf.rb"]
 
-  ext_files = Dir.glob("ext/**/*.{rb,c}")
+  ext_files = Dir.glob("ext/**/*.{rb,c,h}")
   lib_files = Dir.glob("lib/**/*.rb")
-  hiredis_files = Dir.glob("vendor/hiredis/*") -
-    Dir.glob("vendor/hiredis/lib*")
-    Dir.glob("vendor/hiredis/*.o")
+  hiredis_files = Dir.glob("vendor/hiredis/*.{c,h}") -
+        Dir.glob("vendor/hiredis/example*") +
+        Dir.glob("vendor/hiredis/COPYING") +
+        Dir.glob("vendor/hiredis/Makefile")
   s.files = %w(COPYING Rakefile) + ext_files + lib_files + hiredis_files
 end
 
