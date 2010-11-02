@@ -75,6 +75,15 @@ static VALUE connection_is_connected(VALUE self) {
         return Qfalse;
 }
 
+static VALUE connection_disconnect(VALUE self) {
+    redisParentContext *pc;
+    Data_Get_Struct(self,redisParentContext,pc);
+    if (!pc->context)
+        rb_raise(rb_eRuntimeError, "not connected");
+    parent_context_try_free(pc);
+    return Qnil;
+}
+
 static VALUE connection_write(VALUE self, VALUE command) {
     redisParentContext *pc;
     int argc;
@@ -145,6 +154,7 @@ void InitConnection(VALUE mod) {
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
     rb_define_method(klass_connection, "connect", connection_connect, 2);
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
+    rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
     rb_define_method(klass_connection, "write", connection_write, 1);
     rb_define_method(klass_connection, "read", connection_read, 0);
     error_eof = rb_define_class_under(klass_connection, "EOFError", rb_eStandardError);
