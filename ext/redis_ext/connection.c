@@ -144,6 +144,7 @@ void InitConnection(VALUE mod) {
     klass_connection = rb_define_class_under(mod, "Connection", rb_cObject);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
     rb_define_method(klass_connection, "connect", connection_connect, 2);
+    rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "write", connection_write, 1);
     rb_define_method(klass_connection, "read", connection_read, 0);
     error_eof = rb_define_class_under(klass_connection, "EOFError", rb_eStandardError);
