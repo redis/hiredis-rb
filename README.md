@@ -1,18 +1,17 @@
-# redis_ext
+# hiredis-rb
 
 Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis) reply
 parsing code. It is targeted at speeding up parsing multi bulk replies.
 
 ## WARNING
 
-This code is considered alpha. Do not use it for other purposes than
-testing _yet_. Also, the API may be subject to change while in alpha.
+This code is considered beta.
 
 ## Install
 
 Install with Rubygems:
 
-    gem install redis_ext --pre
+    gem install hiredis
 
 ## Usage
 
@@ -21,9 +20,9 @@ This gem cannot be used with redis-rb out of the box _yet_.
 ### Connection
 
 A connection to Redis can be opened by creating an instance of
-`RedisExt::Connection` and calling `#connect`:
+`Hiredis::Connection` and calling `#connect`:
 
-    > conn = RedisExt::Connection.new
+    > conn = Hiredis::Connection.new
     > conn.connect("127.0.0.1", 6379)
 
 Commands can be written to Redis by calling `#write` with an array of
@@ -44,7 +43,7 @@ to implement a subscriber (for Redis Pub/Sub).
     => "awesome"
 
 When the connection was closed by the server, an error of the type
-`RedisExt::Connection::EOFError` will be raised. For all I/O related errors,
+`Hiredis::Connection::EOFError` will be raised. For all I/O related errors,
 the Ruby built-in `Errno::*` errors will be raised. All other errors
 (such as a protocol error) result in a `RuntimeError`.
 
@@ -53,10 +52,10 @@ the Ruby built-in `Errno::*` errors will be raised. All other errors
 Only using `redis_ext` for the reply parser can be very useful in scenarios
 where the I/O is already handled by another component (such as EventMachine).
 
-Use `#feed` on an instance of `RedisExt::Reader` to feed the stream parser with
+Use `#feed` on an instance of `Hiredis::Reader` to feed the stream parser with
 new data. Use `#read` to get the parsed replies one by one:
 
-    > reader = RedisExt::Reader.new
+    > reader = Hiredis::Reader.new
     > reader.feed("*2\r\n$7\r\nawesome\r\n$5\r\narray\r\n")
     > reader.gets
     => ["awesome", "array"]
