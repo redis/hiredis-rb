@@ -6,6 +6,9 @@ static VALUE enc_klass;
 static ID enc_default_external = 0;
 static ID str_force_encoding = 0;
 
+/* Singleton method to test if the reply contains an error. */
+ID ivar_hiredis_error;
+
 /* Add VALUE to parent when the redisReadTask has a parent.
  * Note that the parent should always be of type T_ARRAY. */
 static void *tryParentize(const redisReadTask *task, VALUE v) {
@@ -17,8 +20,12 @@ static void *tryParentize(const redisReadTask *task, VALUE v) {
     return (void*)v;
 }
 
+static VALUE object_contains_error(VALUE self) {
+    return Qtrue;
+}
+
 static void *createStringObject(const redisReadTask *task, char *str, size_t len) {
-    VALUE v, obj, enc;
+    VALUE v, enc;
     v = rb_str_new(str,len);
 
     /* Force default external encoding if possible. */
@@ -27,11 +34,20 @@ static void *createStringObject(const redisReadTask *task, char *str, size_t len
         v = rb_funcall(v,str_force_encoding,1,enc);
     }
 
-    if (task->type == REDIS_REPLY_ERROR)
-        obj = rb_class_new_instance(1,&v,rb_eRuntimeError);
-    else
-        obj = v;
-    return tryParentize(task,obj);
+    if (task->type == REDIS_REPLY_ERROR) {
+        rb_ivar_set(v,ivar_hiredis_error,v);
+        if (task && task->parent != NULL) {
+            /* Also make the parent respond to this method. Redis currently
+             * only emits nested multi bulks of depth 2, so we don't need
+             * to cascade setting this ivar. Make sure to only set the first
+             * error reply on the parent. */
+            VALUE parent = (VALUE)task->parent;
+            if (!rb_ivar_defined(parent,ivar_hiredis_error))
+                rb_ivar_set(parent,ivar_hiredis_error,v);
+        }
+    }
+
+    return tryParentize(task,v);
 }
 
 static void *createArrayObject(const redisReadTask *task, int elements) {
@@ -94,6 +110,12 @@ static VALUE reader_gets(VALUE klass) {
         char *errstr = redisReplyReaderGetError(reader);
         rb_raise(rb_eRuntimeError,"%s",errstr);
     }
+
+    if (rb_ivar_defined(reply,ivar_hiredis_error)) {
+        VALUE error = rb_ivar_get(reply,ivar_hiredis_error);
+        rb_raise(rb_eRuntimeError,"%s",RSTRING_PTR(error));
+    }
+
     return reply;
 }
 
@@ -103,6 +125,7 @@ void InitReader(VALUE mod) {
     rb_define_alloc_func(klass_reader, reader_allocate);
     rb_define_method(klass_reader, "feed", reader_feed, 1);
     rb_define_method(klass_reader, "gets", reader_gets, 0);
+    ivar_hiredis_error = rb_intern("@__hiredis_error");
 
     /* If the Encoding class is present, #default_external should be used to
      * determine the encoding for new strings. The "enc_default_external"

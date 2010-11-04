@@ -24,9 +24,11 @@ class ReaderTest < Test::Unit::TestCase
 
   def test_error_string
     @reader.feed("-error\r\n")
-    reply = @reader.gets
-    assert_equal reply.class, RuntimeError
-    assert_equal reply.message, "error"
+    begin
+      @reader.gets
+    rescue RuntimeError => e
+      assert_equal "error", e.message
+    end
   end
 
   def test_empty_bulk_string
