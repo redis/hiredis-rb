@@ -68,7 +68,7 @@ static VALUE reader_feed(VALUE klass, VALUE str) {
         rb_raise(rb_eTypeError, "not a string");
 
     Data_Get_Struct(klass, void, reader);
-    redisReplyReaderFeed(reader, RSTRING(str)->ptr, RSTRING(str)->len);
+    redisReplyReaderFeed(reader,RSTRING_PTR(str),(size_t)RSTRING_LEN(str));
     return INT2NUM(0);
 }
 
@@ -79,7 +79,7 @@ static VALUE reader_gets(VALUE klass) {
     Data_Get_Struct(klass, void, reader);
     if (redisReplyReaderGetReply(reader,(void**)&reply) != REDIS_OK) {
         char *errstr = redisReplyReaderGetError(reader);
-        rb_raise(rb_eRuntimeError, errstr);
+        rb_raise(rb_eRuntimeError,"%s",errstr);
     }
     return reply;
 }

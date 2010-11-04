@@ -58,7 +58,7 @@ static VALUE connection_connect(VALUE self, VALUE _host, VALUE _port) {
             rb_sys_fail(0);
         } else {
             /* Raise something else */
-            rb_raise(rb_eRuntimeError,errstr);
+            rb_raise(rb_eRuntimeError,"%s",errstr);
         }
     }
 
@@ -80,7 +80,7 @@ static VALUE connection_disconnect(VALUE self) {
     redisParentContext *pc;
     Data_Get_Struct(self,redisParentContext,pc);
     if (!pc->context)
-        rb_raise(rb_eRuntimeError, "not connected");
+        rb_raise(rb_eRuntimeError,"%s","not connected");
     parent_context_try_free(pc);
     return Qnil;
 }
@@ -95,13 +95,13 @@ static VALUE connection_write(VALUE self, VALUE command) {
     /* Commands should be an array of commands, where each command
      * is an array of string arguments. */
     if (TYPE(command) != T_ARRAY)
-        rb_raise(rb_eArgError, "not an array");
+        rb_raise(rb_eArgError,"%s","not an array");
 
     Data_Get_Struct(self,redisParentContext,pc);
     if (!pc->context)
-        rb_raise(rb_eRuntimeError, "not connected");
+        rb_raise(rb_eRuntimeError,"%s","not connected");
 
-    argc = RARRAY_LEN(command);
+    argc = (int)RARRAY_LEN(command);
     argv = malloc(argc*sizeof(char*));
     alen = malloc(argc*sizeof(size_t));
     for (i = 0; i < argc; i++) {
@@ -166,11 +166,11 @@ static VALUE connection_read(VALUE self) {
             break;
         case REDIS_ERR_EOF:
             /* Raise our own EOF error */
-            rb_raise(error_eof,errstr);
+            rb_raise(error_eof,"%s",errstr);
             break;
         default:
             /* Raise something else */
-            rb_raise(rb_eRuntimeError,errstr);
+            rb_raise(rb_eRuntimeError,"%s",errstr);
         }
     }
     return reply;
@@ -178,8 +178,8 @@ static VALUE connection_read(VALUE self) {
 
 static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
     redisParentContext *pc;
-    long int s = NUM2INT(usecs)/1000000;
-    long int us = NUM2INT(usecs)-(s*1000000);
+    int s = NUM2INT(usecs)/1000000;
+    int us = NUM2INT(usecs)-(s*1000000);
     struct timeval timeout = { s, us };
 
     Data_Get_Struct(self,redisParentContext,pc);
