@@ -1,13 +1,13 @@
-# Example of using redis_ext in pub/sub with EventMachine.
+# Example of using hiredis-rb in pub/sub with EventMachine.
 #
-# Make sure you have EventMachine installed and redis_ext compiled.
+# Make sure you have both EventMachine and hiredis installed.
 # Then, run the following command twice with pub *and* sub to see
 # messages passing through Redis.
 #
 #   ruby -rubygems -Ilib examples/em.rb [pub|sub]
 #
 require 'eventmachine'
-require 'redis_ext'
+require 'hiredis/reader'
 
 $cnt = 0
 class Redis < EM::Connection
@@ -19,7 +19,7 @@ class Redis < EM::Connection
 
   def initialize
     super
-    @reader = RedisExt::Reader.new
+    @reader = Hiredis::Reader.new
   end
 
   def receive_data(data)
