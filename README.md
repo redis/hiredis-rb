@@ -48,10 +48,16 @@ When the connection was closed by the server, an error of the type
 the Ruby built-in `Errno::*` errors will be raised. All other errors
 (such as a protocol error) result in a `RuntimeError`.
 
+You can stop hiredis from requiring redis-rb by simply requiring `hiredis/connection`.
+This only loads the connection class and skips loading redis-rb.
+
 ### Reply parser
 
-Only using `redis_ext` for the reply parser can be very useful in scenarios
+Only using hiredis for the reply parser can be very useful in scenarios
 where the I/O is already handled by another component (such as EventMachine).
+
+You can stop hiredis from requiring redis-rb by simply requiring `hiredis/reader`.
+This only loads the reader class and skips loading redis-rb.
 
 Use `#feed` on an instance of `Hiredis::Reader` to feed the stream parser with
 new data. Use `#read` to get the parsed replies one by one:
