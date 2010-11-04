@@ -1,6 +1,11 @@
 #include <assert.h>
 #include "hiredis_ext.h"
 
+/* Force encoding on new strings? */
+static VALUE enc_klass;
+static ID enc_default_external = 0;
+static ID str_force_encoding = 0;
+
 /* Add VALUE to parent when the redisReadTask has a parent.
  * Note that the parent should always be of type T_ARRAY. */
 static void *tryParentize(const redisReadTask *task, VALUE v) {
@@ -13,7 +18,15 @@ static void *tryParentize(const redisReadTask *task, VALUE v) {
 }
 
 static void *createStringObject(const redisReadTask *task, char *str, size_t len) {
-    VALUE obj, v = rb_str_new(str,len);
+    VALUE v, obj, enc;
+    v = rb_str_new(str,len);
+
+    /* Force default external encoding if possible. */
+    if (enc_default_external) {
+        enc = rb_funcall(enc_klass,enc_default_external,0);
+        v = rb_funcall(v,str_force_encoding,1,enc);
+    }
+
     if (task->type == REDIS_REPLY_ERROR)
         obj = rb_class_new_instance(1,&v,rb_eRuntimeError);
     else
@@ -90,4 +103,15 @@ void InitReader(VALUE mod) {
     rb_define_alloc_func(klass_reader, reader_allocate);
     rb_define_method(klass_reader, "feed", reader_feed, 1);
     rb_define_method(klass_reader, "gets", reader_gets, 0);
+
+    /* If the Encoding class is present, #default_external should be used to
+     * determine the encoding for new strings. The "enc_default_external"
+     * ID is non-zero when encoding should be set on new strings. */
+    if (rb_const_defined(rb_cObject, rb_intern("Encoding"))) {
+        enc_klass = rb_const_get(rb_cObject, rb_intern("Encoding"));
+        enc_default_external = rb_intern("default_external");
+        str_force_encoding = rb_intern("force_encoding");
+    } else {
+        enc_default_external = 0;
+    }
 }
