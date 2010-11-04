@@ -1,9 +1,9 @@
 require 'test/unit'
-require 'redis_ext'
+require 'hiredis'
 
 class ReaderTest < Test::Unit::TestCase
   def setup
-    @reader = RedisExt::Reader.new
+    @reader = Hiredis::Reader.new
   end
 
   def test_nil

@@ -1,4 +1,4 @@
-module RedisExt
+module Hiredis
   class Connection
     # Raise CONNRESET on EOF
     alias :_read :read

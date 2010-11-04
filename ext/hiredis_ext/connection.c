@@ -1,6 +1,6 @@
 #include <sys/socket.h>
 #include <errno.h>
-#include "redis_ext.h"
+#include "hiredis_ext.h"
 
 typedef struct redisParentContext {
     redisContext *context;

@@ -1,11 +1,11 @@
-#ifndef __REDIS_EXT_H
-#define __REDIS_EXT_H
+#ifndef __HIREDIS_EXT_H
+#define __HIREDIS_EXT_H
 
 #include "hiredis.h"
 #include "ruby.h"
 
-/* Defined in redis_ext.c */
-extern VALUE mod_redis_ext;
+/* Defined in hiredis_ext.c */
+extern VALUE mod_hiredis;
 
 /* Defined in reader.c */
 extern redisReplyObjectFunctions redisExtReplyObjectFunctions;

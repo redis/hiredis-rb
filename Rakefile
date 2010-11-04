@@ -6,10 +6,10 @@ gem 'rake-compiler', '~> 0.7.1'
 require "rake/extensiontask"
 
 $:.unshift File.join(File.dirname(__FILE__), 'lib')
-require 'redis_ext/version'
+require 'hiredis/version'
 
-GEM = 'redis_ext'
-GEM_VERSION = RedisExt::VERSION
+GEM = 'hiredis'
+GEM_VERSION = Hiredis::VERSION
 AUTHORS = ['Pieter Noordhuis']
 EMAIL = "pcnoordhuis@gmail.com"
 HOMEPAGE = "http://github.com/pietern/redis-ruby-ext"
@@ -46,10 +46,10 @@ task :gemspec do
   end
 end
 
-Rake::ExtensionTask.new('redis_ext') do |task|
+Rake::ExtensionTask.new('hiredis_ext') do |task|
   # Pass --with-foo-config args to extconf.rb
   task.config_options = ARGV[1..-1]
-  task.lib_dir = File.join(*['lib', 'redis_ext'])
+  task.lib_dir = File.join(*['lib', 'hiredis'])
 end
 
 namespace :hiredis do

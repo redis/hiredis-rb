@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "redis_ext.h"
+#include "hiredis_ext.h"
 
 /* Add VALUE to parent when the redisReadTask has a parent.
  * Note that the parent should always be of type T_ARRAY. */
