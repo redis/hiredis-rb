@@ -12,7 +12,7 @@ GEM = 'hiredis'
 GEM_VERSION = Hiredis::VERSION
 AUTHORS = ['Pieter Noordhuis']
 EMAIL = "pcnoordhuis@gmail.com"
-HOMEPAGE = "http://github.com/pietern/redis-ruby-ext"
+HOMEPAGE = "http://github.com/pietern/hiredis-rb"
 SUMMARY = "Ruby extension that wraps Hiredis (blocking connection and reply parsing)"
 
 spec = Gem::Specification.new do |s|
