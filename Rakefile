@@ -36,6 +36,9 @@ spec = Gem::Specification.new do |s|
         Dir.glob("vendor/hiredis/COPYING") +
         Dir.glob("vendor/hiredis/Makefile")
   s.files = %w(COPYING Rakefile) + ext_files + lib_files + hiredis_files
+
+  s.add_runtime_dependency "rake-compiler", "~> 0.7.1"
+  s.add_runtime_dependency "redis", "~> 2.1.0"
 end
 
 desc "create a gemspec file"
