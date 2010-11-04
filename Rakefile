@@ -27,7 +27,6 @@ spec = Gem::Specification.new do |s|
   s.email = EMAIL
   s.homepage = HOMEPAGE
   s.require_path = 'lib'
-  s.autorequire = GEM
   s.extensions = FileList["ext/**/extconf.rb"]
 
   ext_files = Dir.glob("ext/**/*.{rb,c,h}")
