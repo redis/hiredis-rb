@@ -1,4 +1,5 @@
 require 'test/unit'
+require 'rubygems'
 require 'hiredis'
 
 class ReaderTest < Test::Unit::TestCase
