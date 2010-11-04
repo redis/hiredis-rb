@@ -1,3 +1,3 @@
 module Hiredis
-  VERSION = "0.1.0.pre6"
+  VERSION = "0.1.0"
 end
