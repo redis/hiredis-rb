@@ -3,10 +3,6 @@
 Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis) reply
 parsing code. It is targeted at speeding up parsing multi bulk replies.
 
-It is bundled with this specific branch of hiredis (until that branch is
-merged to master):
-[pietern/hiredis/buffer](http://github.com/pietern/hiredis/tree/buffer).
-
 ## WARNING
 
 This code is considered alpha. Do not use it for other purposes than

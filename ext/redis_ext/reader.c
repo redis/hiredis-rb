@@ -55,7 +55,8 @@ static void reader_mark(void *reader) {
 }
 
 static VALUE reader_allocate(VALUE klass) {
-    void *reader = redisReplyReaderCreate(&redisExtReplyObjectFunctions);
+    void *reader = redisReplyReaderCreate();
+    redisReplyReaderSetReplyObjectFunctions(reader,&redisExtReplyObjectFunctions);
     return Data_Wrap_Struct(klass, reader_mark, redisReplyReaderFree, reader);
 }
 
