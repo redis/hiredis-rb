@@ -15,7 +15,8 @@ Install with Rubygems:
 
 ## Usage
 
-This gem cannot be used with redis-rb out of the box _yet_.
+When you `require "hiredis"`, redis-rb will be automatically loaded and setup
+to use hiredis for its connection handling.
 
 ### Connection
 
