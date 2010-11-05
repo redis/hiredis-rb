@@ -78,22 +78,22 @@ For simple line or bulk replies, the throughput improvement is insignificant,
 while the larger multi bulk responses will have a noticeable higher throughput.
 
                                                             user     system      total        real
-    redis-rb:  1x PING pipeline, 10000 times            0.310000   0.170000   0.480000 (  0.724149)
-     hiredis:  1x PING pipeline, 10000 times            0.220000   0.140000   0.360000 (  0.647922)
-    redis-rb: 10x PING pipeline, 10000 times            1.900000   1.060000   2.960000 (  2.961115)
-     hiredis: 10x PING pipeline, 10000 times            0.400000   0.140000   0.540000 (  0.893594)
-    redis-rb:  1x SET pipeline, 10000 times             0.380000   0.170000   0.550000 (  0.826631)
-     hiredis:  1x SET pipeline, 10000 times             0.190000   0.130000   0.320000 (  0.642933)
-    redis-rb: 10x SET pipeline, 10000 times             2.410000   1.000000   3.410000 (  3.424421)
-     hiredis: 10x SET pipeline, 10000 times             0.460000   0.150000   0.610000 (  1.103812)
-    redis-rb:  1x GET pipeline, 10000 times             0.370000   0.170000   0.540000 (  0.784988)
-     hiredis:  1x GET pipeline, 10000 times             0.200000   0.130000   0.330000 (  0.643808)
-    redis-rb: 10x GET pipeline, 10000 times             2.400000   1.030000   3.430000 (  3.428278)
-     hiredis: 10x GET pipeline, 10000 times             0.430000   0.140000   0.570000 (  0.993723)
-    redis-rb:  1x MGET(10) pipeline, 10000 times        1.070000   0.180000   1.250000 (  1.586623)
-     hiredis:  1x MGET(10) pipeline, 10000 times        0.250000   0.140000   0.390000 (  0.736734)
-    redis-rb: 10x MGET(10) pipeline, 10000 times       10.110000   1.140000  11.250000 ( 11.270423)
-     hiredis: 10x MGET(10) pipeline, 10000 times        1.060000   0.160000   1.220000 (  2.208283)
+    redis-rb:  1x PING pipeline, 10000 times            0.320000   0.160000   0.480000 (  0.709805)
+     hiredis:  1x PING pipeline, 10000 times            0.210000   0.140000   0.350000 (  0.634882)
+    redis-rb: 10x PING pipeline, 10000 times            1.760000   0.980000   2.740000 (  2.743499)
+     hiredis: 10x PING pipeline, 10000 times            0.390000   0.120000   0.510000 (  0.866903)
+    redis-rb:  1x SET pipeline, 10000 times             0.350000   0.160000   0.510000 (  0.775627)
+     hiredis:  1x SET pipeline, 10000 times             0.190000   0.130000   0.320000 (  0.615606)
+    redis-rb: 10x SET pipeline, 10000 times             2.240000   0.920000   3.160000 (  3.166384)
+     hiredis: 10x SET pipeline, 10000 times             0.430000   0.140000   0.570000 (  1.040938)
+    redis-rb:  1x GET pipeline, 10000 times             0.360000   0.160000   0.520000 (  0.758718)
+     hiredis:  1x GET pipeline, 10000 times             0.200000   0.130000   0.330000 (  0.624058)
+    redis-rb: 10x GET pipeline, 10000 times             2.150000   0.920000   3.070000 (  3.074284)
+     hiredis: 10x GET pipeline, 10000 times             0.410000   0.130000   0.540000 (  0.954633)
+    redis-rb:  1x MGET(10) pipeline, 1000 times         0.110000   0.020000   0.130000 (  0.155790)
+     hiredis:  1x MGET(10) pipeline, 1000 times         0.020000   0.010000   0.030000 (  0.075833)
+    redis-rb: 10x MGET(10) pipeline, 1000 times         0.980000   0.110000   1.090000 (  1.098079)
+     hiredis: 10x MGET(10) pipeline, 1000 times         0.110000   0.010000   0.120000 (  0.213006)
 
 ## License
 

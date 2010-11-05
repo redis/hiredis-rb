@@ -48,6 +48,6 @@ Benchmark.bm(50) do |b|
   pipeline(b,10000,10, "SET", %w(set foo bar))
   pipeline(b,10000, 1, "GET", %w(get foo))
   pipeline(b,10000,10, "GET", %w(get foo))
-  pipeline(b,10000, 1, "MGET(10)", %w(mget foo foo foo foo foo foo foo foo foo foo))
-  pipeline(b,10000,10, "MGET(10)", %w(mget foo foo foo foo foo foo foo foo foo foo))
+  pipeline(b,1000, 1, "MGET(10)", %w(mget) + (["foo"] * 10))
+  pipeline(b,1000,10, "MGET(10)", %w(mget) + (["foo"] * 10))
 end
