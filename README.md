@@ -18,29 +18,38 @@ Install with Rubygems:
 When you `require "hiredis"`, redis-rb will be automatically loaded and setup
 to use hiredis for its connection handling.
 
+    >> redis = Redis.new
+    => #<Redis client v2.1.1...>
+
+    >> redis.client.connection
+    => #<Hiredis::Connection:0x0000010085ac40>
+
+You can use Redis normally, as you would with the pure Ruby version.
+
 ### Connection
 
 A connection to Redis can be opened by creating an instance of
 `Hiredis::Connection` and calling `#connect`:
 
-    > conn = Hiredis::Connection.new
-    > conn.connect("127.0.0.1", 6379)
+    >> conn = Hiredis::Connection.new
+    >> conn.connect("127.0.0.1", 6379)
 
 Commands can be written to Redis by calling `#write` with an array of
 arguments. You can call write more than once, resulting in a pipeline of
 commands.
 
-    > conn.write ["SET", "speed", "awesome"]
-    > conn.write ["GET", "speed"]
+    >> conn.write ["SET", "speed", "awesome"]
+    >> conn.write ["GET", "speed"]
 
 After commands are written, use `#read` to receive the subsequent replies.
 Make sure **not** to call `#read` more than you have replies to read, or
 the connection will block indefinitely. You _can_ use this feature
 to implement a subscriber (for Redis Pub/Sub).
 
-    > conn.read
+    >> conn.read
     => "OK"
-    > conn.read
+
+    >> conn.read
     => "awesome"
 
 When the connection was closed by the server, an error of the type
@@ -62,9 +71,9 @@ This only loads the reader class and skips loading redis-rb.
 Use `#feed` on an instance of `Hiredis::Reader` to feed the stream parser with
 new data. Use `#read` to get the parsed replies one by one:
 
-    > reader = Hiredis::Reader.new
-    > reader.feed("*2\r\n$7\r\nawesome\r\n$5\r\narray\r\n")
-    > reader.gets
+    >> reader = Hiredis::Reader.new
+    >> reader.feed("*2\r\n$7\r\nawesome\r\n$5\r\narray\r\n")
+    >> reader.gets
     => ["awesome", "array"]
 
 ## Benchmarks
