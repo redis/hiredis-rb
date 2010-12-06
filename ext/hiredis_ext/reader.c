@@ -13,7 +13,7 @@ ID ivar_hiredis_error;
  * Note that the parent should always be of type T_ARRAY. */
 static void *tryParentize(const redisReadTask *task, VALUE v) {
     if (task && task->parent != NULL) {
-        VALUE parent = (VALUE)task->parent;
+        VALUE parent = (VALUE)task->parent->obj;
         assert(TYPE(parent) == T_ARRAY);
         rb_ary_store(parent,task->idx,v);
     }
