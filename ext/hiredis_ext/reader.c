@@ -41,7 +41,7 @@ static void *createStringObject(const redisReadTask *task, char *str, size_t len
              * only emits nested multi bulks of depth 2, so we don't need
              * to cascade setting this ivar. Make sure to only set the first
              * error reply on the parent. */
-            VALUE parent = (VALUE)task->parent;
+            VALUE parent = (VALUE)task->parent->obj;
             if (!rb_ivar_defined(parent,ivar_hiredis_error))
                 rb_ivar_set(parent,ivar_hiredis_error,v);
         }

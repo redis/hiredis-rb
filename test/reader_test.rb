@@ -32,6 +32,15 @@ class ReaderTest < Test::Unit::TestCase
     end
   end
 
+  def test_first_error_in_nested_multi_bulk
+    @reader.feed("*2\r\n-err1\r\n-err2\r\n")
+    begin
+      @reader.gets
+    rescue RuntimeError => e
+      assert_equal "err1", e.message
+    end
+  end
+
   def test_empty_bulk_string
     @reader.feed("$0\r\n\r\n")
     assert_equal "", @reader.gets
