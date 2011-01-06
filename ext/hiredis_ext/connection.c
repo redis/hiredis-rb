@@ -15,7 +15,6 @@ static void parent_context_try_free(redisParentContext *pc) {
 
 static void parent_context_mark(redisParentContext *pc) {
     VALUE root;
-    fflush(stdout);
     if (pc->context && pc->context->reader) {
         root = (VALUE)redisReplyReaderGetObject(pc->context->reader);
         if (root != 0 && TYPE(root) == T_ARRAY) {
