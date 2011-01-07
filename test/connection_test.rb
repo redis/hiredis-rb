@@ -64,4 +64,13 @@ class ConnectionTest < Test::Unit::TestCase
       @conn.read
     end
   end
+
+  def test_raise_on_error_reply
+    @conn.connect("localhost", 6379)
+    @conn.write(["GET"])
+
+    assert_raise RuntimeError, /wrong number of arguments/i do
+      @conn.read
+    end
+  end
 end
