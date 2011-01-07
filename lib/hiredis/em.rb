@@ -1,0 +1,1 @@
+require 'hiredis/em/connection'

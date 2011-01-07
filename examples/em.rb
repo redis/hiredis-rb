@@ -7,33 +7,13 @@
 #   ruby -rubygems -Ilib examples/em.rb [pub|sub]
 #
 require 'eventmachine'
-require 'hiredis/reader'
+require 'hiredis/em'
 
 $cnt = 0
-class Redis < EM::Connection
-  def self.connect
-    host = (ENV['REDIS_HOST'] || 'localhost')
-    port = (ENV['REDIS_PORT'] || 6379).to_i
-    EM.connect(host,port,self)
-  end
 
-  def initialize
-    super
-    @reader = Hiredis::Reader.new
-  end
-
-  def receive_data(data)
-    @reader.feed(data)
-    while reply = @reader.gets
-      receive_reply(reply)
-      $cnt += 1
-    end
-  end
-end
-
-class Publisher < Redis
+class Publisher < Hiredis::EM::Connection
   def publish!
-    send_data "PUBLISH channel hithere\r\n"
+    send_command "PUBLISH", "channel", "hithere"
   end
 
   def post_init
@@ -41,17 +21,18 @@ class Publisher < Redis
   end
 
   def receive_reply(reply)
+    $cnt += 1
     publish!
   end
 end
 
-class Subscriber < Redis
+class Subscriber < Hiredis::EM::Connection
   def post_init
-    send_data "SUBSCRIBE channel\r\n"
+    send_command "SUBSCRIBE", "channel"
   end
 
   def receive_reply(reply)
-    # skip
+    $cnt += 1
   end
 end
 
@@ -66,7 +47,7 @@ EventMachine.run do
   end
 
   num = (ARGV.shift || 5).to_i
-  num.times { klass.connect }
+  num.times { EventMachine.connect("localhost", 6379, klass) }
 
   EventMachine::PeriodicTimer.new(1) do
     print "%s: %6d\r" % [klass.name, $cnt]
