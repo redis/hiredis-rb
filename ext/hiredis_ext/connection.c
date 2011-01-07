@@ -186,15 +186,18 @@ static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
     int s = NUM2INT(usecs)/1000000;
     int us = NUM2INT(usecs)-(s*1000000);
     struct timeval timeout = { s, us };
+    char errstr[1024];
 
     Data_Get_Struct(self,redisParentContext,pc);
     if (!pc->context)
         rb_raise(rb_eRuntimeError, "not connected");
 
-    if (setsockopt(pc->context->fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1)
-        rb_sys_fail(0);
-    if (setsockopt(pc->context->fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == -1)
-        rb_sys_fail(0);
+    if (redisSetTimeout(pc->context,timeout) == REDIS_ERR) {
+        snprintf(errstr,sizeof(errstr),"%s",pc->context->errstr);
+        parent_context_try_free(pc);
+        rb_raise(rb_eRuntimeError,"%s",errstr);
+    }
+
     return usecs;
 }
 
