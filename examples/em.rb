@@ -12,23 +12,21 @@ require 'hiredis/em'
 $cnt = 0
 
 class Publisher < Hiredis::EM::Connection
-  def publish!
-    send_command "PUBLISH", "channel", "hithere"
-  end
-
   def post_init
     publish!
   end
 
-  def receive_reply(reply)
-    $cnt += 1
-    publish!
+  def publish!
+    publish "channel", "hithere" do |reply|
+      $cnt += 1
+      publish!
+    end
   end
 end
 
 class Subscriber < Hiredis::EM::Connection
   def post_init
-    send_command "SUBSCRIBE", "channel"
+    subscribe "channel"
   end
 
   def receive_reply(reply)
