@@ -173,11 +173,6 @@ static VALUE connection_read(VALUE self) {
         }
     }
 
-    if (rb_ivar_defined(reply,ivar_hiredis_error)) {
-        VALUE error = rb_ivar_get(reply,ivar_hiredis_error);
-        rb_raise(rb_eRuntimeError,"%s",RSTRING_PTR(error));
-    }
-
     return reply;
 }
 

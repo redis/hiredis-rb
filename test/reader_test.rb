@@ -25,15 +25,19 @@ class ReaderTest < Test::Unit::TestCase
 
   def test_error_string
     @reader.feed("-error\r\n")
-    assert_raise RuntimeError, "error" do
-      @reader.gets
-    end
+    error = @reader.gets
+
+    assert_equal RuntimeError, error.class
+    assert_equal "error", error.message
   end
 
-  def test_first_error_in_nested_multi_bulk
-    @reader.feed("*2\r\n-err1\r\n-err2\r\n")
-    assert_raise RuntimeError, "err1" do
-      @reader.gets
+  def test_errors_in_nested_multi_bulk
+    @reader.feed("*2\r\n-err0\r\n-err1\r\n")
+    errors = @reader.gets
+
+    2.times do |i|
+      assert_equal RuntimeError, errors[i].class
+      assert_equal "err#{i}", errors[i].message
     end
   end
 

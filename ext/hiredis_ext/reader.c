@@ -35,7 +35,9 @@ static void *createStringObject(const redisReadTask *task, char *str, size_t len
     }
 
     if (task->type == REDIS_REPLY_ERROR) {
+        v = rb_funcall(rb_eRuntimeError,rb_intern("new"),1,v);
         rb_ivar_set(v,ivar_hiredis_error,v);
+
         if (task && task->parent != NULL) {
             /* Also make the parent respond to this method. Redis currently
              * only emits nested multi bulks of depth 2, so we don't need
@@ -109,11 +111,6 @@ static VALUE reader_gets(VALUE klass) {
     if (redisReplyReaderGetReply(reader,(void**)&reply) != REDIS_OK) {
         char *errstr = redisReplyReaderGetError(reader);
         rb_raise(rb_eRuntimeError,"%s",errstr);
-    }
-
-    if (rb_ivar_defined(reply,ivar_hiredis_error)) {
-        VALUE error = rb_ivar_get(reply,ivar_hiredis_error);
-        rb_raise(rb_eRuntimeError,"%s",RSTRING_PTR(error));
     }
 
     return reply;
