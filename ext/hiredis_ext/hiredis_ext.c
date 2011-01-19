@@ -4,8 +4,10 @@
 #include "hiredis_ext.h"
 
 VALUE mod_hiredis;
+VALUE mod_ext;
 void Init_hiredis_ext() {
     mod_hiredis = rb_define_module("Hiredis");
-    InitReader(mod_hiredis);
-    InitConnection(mod_hiredis);
+    mod_ext = rb_define_module_under(mod_hiredis,"Ext");
+    InitReader(mod_ext);
+    InitConnection(mod_ext);
 }

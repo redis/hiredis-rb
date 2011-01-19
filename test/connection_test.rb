@@ -1,10 +1,9 @@
 require 'test/unit'
-require 'rubygems'
-require 'hiredis'
+require 'hiredis/ext/connection'
 
 class ConnectionTest < Test::Unit::TestCase
   def setup
-    @conn = Hiredis::Connection.new
+    @conn = Hiredis::Ext::Connection.new
   end
 
   def test_connect_wrong_host

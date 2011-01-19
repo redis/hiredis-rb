@@ -1,7 +1,6 @@
 require 'test/unit'
-require 'rubygems'
-require 'hiredis/reader'
 require 'hiredis/ruby/reader'
+require 'hiredis/ext/reader'
 
 module ReaderTests
   def test_nil
@@ -79,12 +78,12 @@ if defined?(Hiredis::Ruby::Reader)
   end
 end
 
-if defined?(Hiredis::Reader)
+if defined?(Hiredis::Ext::Reader)
   class ExtReaderTest < Test::Unit::TestCase
     include ReaderTests
 
     def setup
-      @reader = Hiredis::Reader.new
+      @reader = Hiredis::Ext::Reader.new
     end
   end
 end
