@@ -27,7 +27,7 @@ def benchmark(b, title, klass, pipeline = 1)
   data = "$10\r\nxxxxxxxxxx\r\n"
 
   GC.start
-  b.report("#{title}: Bulk reply") do
+  b.report("#{title}: Bulk reply (10 bytes)") do
     (N / pipeline).times do
       pipeline.times { reader.feed(data) }
       pipeline.times { reader.gets }
@@ -38,7 +38,7 @@ def benchmark(b, title, klass, pipeline = 1)
   10.times { data << "$10\r\nxxxxxxxxxx\r\n" }
 
   GC.start
-  b.report("#{title}: Multi-bulk reply") do
+  b.report("#{title}: Multi-bulk reply (10x 10 bytes)") do
     (N / pipeline).times do
       pipeline.times { reader.feed(data) }
       pipeline.times { reader.gets }
@@ -48,7 +48,7 @@ def benchmark(b, title, klass, pipeline = 1)
   data = "*1\r\n#{data}"
 
   GC.start
-  b.report("#{title}: Nested multi-bulk reply") do
+  b.report("#{title}: Nested multi-bulk reply (1x 10x 10 bytes)") do
     (N / pipeline).times do
       pipeline.times { reader.feed(data) }
       pipeline.times { reader.gets }
@@ -56,9 +56,10 @@ def benchmark(b, title, klass, pipeline = 1)
   end
 end
 
-Benchmark.bm(40) do |b|
-  pipeline = (ARGV.shift || 1).to_i
+pipeline = (ARGV.shift || 1).to_i
+puts "\n%d replies in pipelines of %d replies\n" % [N, pipeline]
 
+Benchmark.bm(50) do |b|
   if defined?(Hiredis::Reader)
     benchmark(b, "Ext", Hiredis::Reader, pipeline)
     puts
