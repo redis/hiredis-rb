@@ -9,7 +9,7 @@ require "hiredis/ruby/reader"
 require "hiredis/reader"
 require "benchmark"
 
-N = 10_000
+N = 100_000
 
 def benchmark(b, title, klass, pipeline = 1)
   reader = klass.new
