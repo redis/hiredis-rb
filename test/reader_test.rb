@@ -1,12 +1,9 @@
 require 'test/unit'
 require 'rubygems'
-require 'hiredis'
+require 'hiredis/reader'
+require 'hiredis/ruby/reader'
 
-class ReaderTest < Test::Unit::TestCase
-  def setup
-    @reader = Hiredis::Reader.new
-  end
-
+module ReaderTests
   def test_nil
     @reader.feed("$-1\r\n")
     assert_equal nil, @reader.gets
@@ -69,5 +66,25 @@ class ReaderTest < Test::Unit::TestCase
   def test_nested_multi_bulk
     @reader.feed("*2\r\n*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n$1\r\n!\r\n")
     assert_equal [["hello", "world"], "!"], @reader.gets
+  end
+end
+
+if defined?(Hiredis::Ruby::Reader)
+  class RubyReaderTest < Test::Unit::TestCase
+    include ReaderTests
+
+    def setup
+      @reader = Hiredis::Ruby::Reader.new
+    end
+  end
+end
+
+if defined?(Hiredis::Reader)
+  class ExtReaderTest < Test::Unit::TestCase
+    include ReaderTests
+
+    def setup
+      @reader = Hiredis::Reader.new
+    end
   end
 end
