@@ -61,9 +61,11 @@ Benchmark.bm(40) do |b|
 
   if defined?(Hiredis::Reader)
     benchmark(b, "Ext", Hiredis::Reader, pipeline)
+    puts
   end
 
   if defined?(Hiredis::Ruby::Reader)
     benchmark(b, "Ruby", Hiredis::Ruby::Reader, pipeline)
+    puts
   end
 end
