@@ -15,7 +15,7 @@ module Hiredis
 
       def receive_data(data)
         @reader.feed(data)
-        while reply = @reader.gets
+        until (reply = @reader.gets) == false
           receive_reply(reply)
         end
       end
