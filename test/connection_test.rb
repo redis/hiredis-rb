@@ -37,7 +37,7 @@ module ConnectionTests
 
   def test_wrong_value_for_timeout
     @conn.connect("localhost", 6379)
-    assert_raise RuntimeError, /setsockopt/ do
+    assert_raise Errno::EDOM do
       @conn.timeout = -10
     end
   end

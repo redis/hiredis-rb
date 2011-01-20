@@ -28,6 +28,30 @@ static void parent_context_free(redisParentContext *pc) {
     free(pc);
 }
 
+static void parent_context_raise(redisParentContext *pc) {
+    int err;
+    char errstr[1024];
+
+    /* Copy error and free context */
+    err = pc->context->err;
+    snprintf(errstr,sizeof(errstr),"%s",pc->context->errstr);
+    parent_context_try_free(pc);
+
+    switch(err) {
+    case REDIS_ERR_IO:
+        /* Raise native Ruby I/O error */
+        rb_sys_fail(0);
+        break;
+    case REDIS_ERR_EOF:
+        /* Raise our own EOF error */
+        rb_raise(error_eof,"%s",errstr);
+        break;
+    default:
+        /* Raise something else */
+        rb_raise(rb_eRuntimeError,"%s",errstr);
+    }
+}
+
 static VALUE connection_parent_context_alloc(VALUE klass) {
     redisParentContext *pc = malloc(sizeof(*pc));
     pc->context = NULL;
@@ -145,33 +169,13 @@ static int __get_reply(redisParentContext *pc, VALUE *reply) {
 static VALUE connection_read(VALUE self) {
     redisParentContext *pc;
     VALUE reply;
-    int err;
-    char errstr[1024];
 
     Data_Get_Struct(self,redisParentContext,pc);
     if (!pc->context)
         rb_raise(rb_eRuntimeError, "not connected");
 
-    if (__get_reply(pc,&reply) == -1) {
-        /* Copy error and free context */
-        err = pc->context->err;
-        snprintf(errstr,sizeof(errstr),"%s",pc->context->errstr);
-        parent_context_try_free(pc);
-
-        switch(err) {
-        case REDIS_ERR_IO:
-            /* Raise native Ruby I/O error */
-            rb_sys_fail(0);
-            break;
-        case REDIS_ERR_EOF:
-            /* Raise our own EOF error */
-            rb_raise(error_eof,"%s",errstr);
-            break;
-        default:
-            /* Raise something else */
-            rb_raise(rb_eRuntimeError,"%s",errstr);
-        }
-    }
+    if (__get_reply(pc,&reply) == -1)
+        parent_context_raise(pc);
 
     return reply;
 }
@@ -181,17 +185,13 @@ static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
     int s = NUM2INT(usecs)/1000000;
     int us = NUM2INT(usecs)-(s*1000000);
     struct timeval timeout = { s, us };
-    char errstr[1024];
 
     Data_Get_Struct(self,redisParentContext,pc);
     if (!pc->context)
         rb_raise(rb_eRuntimeError, "not connected");
 
-    if (redisSetTimeout(pc->context,timeout) == REDIS_ERR) {
-        snprintf(errstr,sizeof(errstr),"%s",pc->context->errstr);
-        parent_context_try_free(pc);
-        rb_raise(rb_eRuntimeError,"%s",errstr);
-    }
+    if (redisSetTimeout(pc->context,timeout) == REDIS_ERR)
+        parent_context_raise(pc);
 
     return usecs;
 }

@@ -48,8 +48,6 @@ module Hiredis
           @sock.setsockopt Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, optval
           @sock.setsockopt Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, optval
         rescue Errno::ENOPROTOOPT
-        rescue Errno::EDOM => error
-          raise "setsockopt: #{error.message}"
         end
       end
 
