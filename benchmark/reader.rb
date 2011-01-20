@@ -5,9 +5,13 @@
 #   $ ruby -Ilib benchmark/reader.rb
 #
 
-require "hiredis/ruby/reader"
-require "hiredis/reader"
 require "benchmark"
+require "hiredis/ruby/reader"
+
+begin
+  require "hiredis/ext/reader"
+rescue LoadError
+end
 
 N = 100_000
 
@@ -60,8 +64,8 @@ pipeline = (ARGV.shift || 1).to_i
 puts "\n%d replies in pipelines of %d replies\n" % [N, pipeline]
 
 Benchmark.bm(50) do |b|
-  if defined?(Hiredis::Reader)
-    benchmark(b, "Ext", Hiredis::Reader, pipeline)
+  if defined?(Hiredis::Ext::Reader)
+    benchmark(b, "Ext", Hiredis::Ext::Reader, pipeline)
     puts
   end
 
