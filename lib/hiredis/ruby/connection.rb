@@ -51,16 +51,18 @@ module Hiredis
         end
       end
 
+      COMMAND_DELIMITER = "\r\n".freeze
+
       def write(args)
-        command = "*#{args.size}\r\n"
+        command = []
+        command << "*#{args.size}"
         args.each do |arg|
           arg = arg.to_s
-          command << "$#{string_size arg}\r\n"
+          command << "$#{string_size arg}"
           command << arg
-          command << "\r\n"
         end
 
-        @sock.write(command)
+        @sock.write(command.join(COMMAND_DELIMITER) + COMMAND_DELIMITER)
       end
 
       def read
