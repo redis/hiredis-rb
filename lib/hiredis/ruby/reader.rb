@@ -27,15 +27,14 @@ module Hiredis
         DOLLAR   = "$"[0]
         ASTERISK = "*"[0]
 
-        attr_accessor :parent
+        attr_accessor :parent, :child
         attr_accessor :multi_bulk
 
-        def initialize(buffer, parent = nil)
+        def initialize(buffer, parent = nil, depth = 0)
           @buffer, @parent = buffer, parent
-        end
 
-        def child
-          @child ||= Task.new(@buffer, self)
+          # Require 3 nested tasks
+          @child = Task.new(@buffer, self, depth + 1) if depth < 2
         end
 
         def root
