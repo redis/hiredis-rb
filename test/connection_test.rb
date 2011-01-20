@@ -52,6 +52,12 @@ module ConnectionTests
     end
   end
 
+  def test_symbol_in_argument_list
+    @conn.connect("localhost", 6379)
+    @conn.write([:info])
+    assert_kind_of String, @conn.read
+  end
+
   def test_read_against_timeout
     @conn.connect("localhost", 6379)
     @conn.timeout = 10_000

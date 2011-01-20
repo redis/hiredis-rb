@@ -54,6 +54,7 @@ module Hiredis
       def write(args)
         command = "*#{args.size}\r\n"
         args.each do |arg|
+          arg = arg.to_s
           command << "$#{string_size arg}\r\n"
           command << arg
           command << "\r\n"
