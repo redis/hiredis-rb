@@ -21,11 +21,11 @@ module Hiredis
 
       class Task
 
-        MINUS    = "-".freeze
-        PLUS     = "+".freeze
-        COLON    = ":".freeze
-        DOLLAR   = "$".freeze
-        ASTERISK = "*".freeze
+        MINUS    = "-"[0]
+        PLUS     = "+"[0]
+        COLON    = ":"[0]
+        DOLLAR   = "$"[0]
+        ASTERISK = "*"[0]
 
         attr_accessor :parent
         attr_accessor :multi_bulk
@@ -52,50 +52,38 @@ module Hiredis
         end
 
         def reset!
-          @type = @bulk_length = @multi_bulk = @multi_bulk_length = nil
+          @line = @type = @multi_bulk = nil
         end
 
         def process_error_reply
-          if str = @buffer.read_line
-            error = RuntimeError.new(str)
-            set_error_object(error)
-            reset!
-            error
-          else
-            false
-          end
+          reply = RuntimeError.new(@line)
+          set_error_object(reply)
+          reset!
+          reply
         end
 
         def process_status_reply
-          if str = @buffer.read_line
-            reset!
-            str
-          else
-            false
-          end
+          reply = @line
+          reset!
+          reply
         end
 
         def process_integer_reply
-          if str = @buffer.read_line
-            reset!
-            str.to_i
-          else
-            false
-          end
+          reply = @line.to_i
+          reset!
+          reply
         end
 
         def process_bulk_reply
-          @bulk_length ||= @buffer.read_int
-          return false if @bulk_length.nil?
+          bulk_length = @line.to_i
 
-          if @bulk_length >= 0
-            if @buffer.length >= @bulk_length + 2
-              bulk = @buffer.read(@bulk_length)
-              @buffer.read(2) # discard CRLF
-              reset!
-              bulk
+          if bulk_length >= 0
+            reply = @buffer.read(bulk_length, 2)
+            if reply.nil?
+              return false
             else
-              false
+              reset!
+              reply
             end
           else
             reset!
@@ -104,30 +92,25 @@ module Hiredis
         end
 
         def process_multi_bulk_reply
-          @multi_bulk_length ||= @buffer.read_int
-          return false if @multi_bulk_length.nil?
+          multi_bulk_length = @line.to_i
 
-          if @multi_bulk_length > 0
-            if @multi_bulk.nil?
-              @multi_bulk = Array.new(@multi_bulk_length)
-              @multi_bulk_index = 0
-            end
+          if multi_bulk_length > 0
+            @multi_bulk ||= []
 
-            while @multi_bulk_index < @multi_bulk_length
+            while @multi_bulk.length < multi_bulk_length
               element = child.process
               break if element == false
-              @multi_bulk[@multi_bulk_index] = element
-              @multi_bulk_index += 1
+              @multi_bulk << element
             end
 
-            if @multi_bulk_index == @multi_bulk_length
-              multi_bulk = @multi_bulk
+            if @multi_bulk.length == multi_bulk_length
+              reply = @multi_bulk
               reset!
-              multi_bulk
+              reply
             else
               false
             end
-          elsif @multi_bulk_length == 0
+          elsif multi_bulk_length == 0
             reset!
             []
           else
@@ -137,8 +120,10 @@ module Hiredis
         end
 
         def process
-          @type ||= @buffer.read(1)
-          return false if @type.nil?
+          @line ||= @buffer.read_line
+          return false if @line.nil?
+
+          @type ||= @line.slice!(0)
 
           case @type
           when MINUS
@@ -163,48 +148,51 @@ module Hiredis
 
         def initialize
           @buffer = ""
-          @pos = 0
+          @length = @pos = 0
         end
 
         def <<(data)
+          @length += data.length
           @buffer << data
         end
 
         def length
-          @buffer.length - @pos
+          @length
         end
 
-        # Only discard part of the buffer when we've seen enough.
+        def empty?
+          @length == 0
+        end
+
         def discard!
-          if @pos >= 1024
-            @buffer.slice!(0, @pos)
-            @pos = 0
+          if @length == 0
+            @buffer = ""
+            @length = @pos = 0
+          else
+            if @pos >= 1024
+              @buffer.slice!(0, @pos)
+              @length -= @pos
+              @pos = 0
+            end
           end
         end
 
-        def read(bytes)
+        def read(bytes, skip = 0)
           start = @pos
-          stop = start + bytes
-          return nil if stop > @buffer.length
+          stop = start + bytes + skip
 
-          @pos = stop
-          @buffer[start, stop - start]
+          if @length >= stop
+            @pos = stop
+            @buffer[start, bytes]
+          end
         end
 
         def read_line
           start = @pos
           stop = @buffer.index(CRLF, @pos)
-          return nil if stop.nil?
-
-          @pos = stop + 2 # include CRLF
-          @buffer[start, stop - start]
-        end
-
-        def read_int
-          if str = read_line
-            str.to_i
-          else
-            nil
+          if stop
+            @pos = stop + 2 # include CRLF
+            @buffer[start, stop - start]
           end
         end
       end
