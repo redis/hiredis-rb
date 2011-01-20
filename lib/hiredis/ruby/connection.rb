@@ -62,7 +62,7 @@ module Hiredis
           command << arg
         end
 
-        @sock.write(command.join(COMMAND_DELIMITER) + COMMAND_DELIMITER)
+        @sock.syswrite(command.join(COMMAND_DELIMITER) + COMMAND_DELIMITER)
       end
 
       def read
