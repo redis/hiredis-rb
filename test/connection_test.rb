@@ -1,11 +1,8 @@
 require 'test/unit'
+require 'hiredis/ruby/connection'
 require 'hiredis/ext/connection'
 
-class ConnectionTest < Test::Unit::TestCase
-  def setup
-    @conn = Hiredis::Ext::Connection.new
-  end
-
+module ConnectionTests
   def test_connect_wrong_host
     assert_raise RuntimeError, /can't resolve/i do
       @conn.connect("nonexisting", 6379)
@@ -70,6 +67,26 @@ class ConnectionTest < Test::Unit::TestCase
 
     assert_raise RuntimeError, /wrong number of arguments/i do
       @conn.read
+    end
+  end
+end
+
+if defined?(Hiredis::Ruby::Connection)
+  class RubyConnectionTest < Test::Unit::TestCase
+    include ConnectionTests
+
+    def setup
+      @conn = Hiredis::Ruby::Connection.new
+    end
+  end
+end
+
+if defined?(Hiredis::Ext::Connection)
+  class ExtConnectionTest < Test::Unit::TestCase
+    include ConnectionTests
+
+    def setup
+      @conn = Hiredis::Ext::Connection.new
     end
   end
 end
