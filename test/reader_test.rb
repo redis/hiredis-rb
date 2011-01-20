@@ -3,6 +3,10 @@ require 'hiredis/ruby/reader'
 require 'hiredis/ext/reader'
 
 module ReaderTests
+  def test_false_on_empty_buffer
+    assert_equal false, @reader.gets
+  end
+
   def test_nil
     @reader.feed("$-1\r\n")
     assert_equal nil, @reader.gets

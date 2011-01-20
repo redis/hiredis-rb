@@ -138,7 +138,7 @@ module Hiredis
 
         def process
           @type ||= @buffer.read(1)
-          return if @type.nil?
+          return false if @type.nil?
 
           case @type
           when MINUS
