@@ -49,6 +49,7 @@ module Hiredis
           if !obj.instance_variable_defined?(:@__hiredis_error)
             obj.instance_variable_set(:@__hiredis_error, err)
           end
+          err
         end
 
         def reset!
@@ -56,22 +57,15 @@ module Hiredis
         end
 
         def process_error_reply
-          reply = RuntimeError.new(@line)
-          set_error_object(reply)
-          reset!
-          reply
+          set_error_object RuntimeError.new(@line)
         end
 
         def process_status_reply
-          reply = @line
-          reset!
-          reply
+          @line
         end
 
         def process_integer_reply
-          reply = @line.to_i
-          reset!
-          reply
+          @line.to_i
         end
 
         def process_bulk_reply
@@ -80,13 +74,11 @@ module Hiredis
           if bulk_length >= 0
             reply = @buffer.read(bulk_length, 2)
             if reply.nil?
-              return false
+              false
             else
-              reset!
               reply
             end
           else
-            reset!
             nil
           end
         end
@@ -104,17 +96,13 @@ module Hiredis
             end
 
             if @multi_bulk.length == multi_bulk_length
-              reply = @multi_bulk
-              reset!
-              reply
+              @multi_bulk
             else
               false
             end
           elsif multi_bulk_length == 0
-            reset!
             []
           else
-            reset!
             nil
           end
         end
@@ -125,7 +113,7 @@ module Hiredis
 
           @type ||= @line.slice!(0)
 
-          case @type
+          reply = case @type
           when MINUS
             process_error_reply
           when PLUS
@@ -139,6 +127,9 @@ module Hiredis
           else
             raise "Protocol error"
           end
+
+          reset! if reply != false
+          reply
         end
       end
 
