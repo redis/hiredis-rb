@@ -89,17 +89,13 @@ module Hiredis
           if multi_bulk_length > 0
             @multi_bulk ||= []
 
-            while @multi_bulk.length < multi_bulk_length
-              element = child.process
-              break if element == false
+            # We know the multi bulk is not complete when this path is taken.
+            while (element = child.process) != false
               @multi_bulk << element
+              return @multi_bulk if @multi_bulk.length == multi_bulk_length
             end
 
-            if @multi_bulk.length == multi_bulk_length
-              @multi_bulk
-            else
-              false
-            end
+            false
           elsif multi_bulk_length == 0
             []
           else
