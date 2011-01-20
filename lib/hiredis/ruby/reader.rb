@@ -21,11 +21,14 @@ module Hiredis
 
       class Task
 
-        MINUS    = "-"[0]
-        PLUS     = "+"[0]
-        COLON    = ":"[0]
-        DOLLAR   = "$"[0]
-        ASTERISK = "*"[0]
+        # Use lookup table to map reply types to methods
+        method_index = {}
+        method_index[?-] = :process_error_reply
+        method_index[?+] = :process_status_reply
+        method_index[?:] = :process_integer_reply
+        method_index[?$] = :process_bulk_reply
+        method_index[?*] = :process_multi_bulk_reply
+        METHOD_INDEX = method_index.freeze
 
         attr_accessor :parent, :child
         attr_accessor :multi_bulk
@@ -102,26 +105,16 @@ module Hiredis
           end
         end
 
+        def process_protocol_error
+          raise "Protocol error"
+        end
+
         def process
           @line ||= @buffer.read_line
           return false if @line.nil?
 
           @type ||= @line.slice!(0)
-
-          reply = case @type
-          when MINUS
-            process_error_reply
-          when PLUS
-            process_status_reply
-          when COLON
-            process_integer_reply
-          when DOLLAR
-            process_bulk_reply
-          when ASTERISK
-            process_multi_bulk_reply
-          else
-            raise "Protocol error"
-          end
+          reply = send(METHOD_INDEX[@type] || :process_protocol_error)
 
           reset! if reply != false
           reply
