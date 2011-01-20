@@ -27,6 +27,22 @@ module ReaderTests
     assert_equal "error", error.message
   end
 
+  def test_error_ivar_on_error_reply
+    @reader.feed("-error\r\n")
+    error = @reader.gets.instance_variable_get(:@__hiredis_error)
+
+    assert_equal RuntimeError, error.class
+    assert_equal "error", error.message
+  end
+
+  def test_error_ivar_on_multi_bulk_reply
+    @reader.feed("*1\r\n-error\r\n")
+    error = @reader.gets.instance_variable_get(:@__hiredis_error)
+
+    assert_equal RuntimeError, error.class
+    assert_equal "error", error.message
+  end
+
   def test_errors_in_nested_multi_bulk
     @reader.feed("*2\r\n-err0\r\n-err1\r\n")
     errors = @reader.gets

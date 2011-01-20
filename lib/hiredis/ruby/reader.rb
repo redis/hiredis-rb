@@ -28,6 +28,7 @@ module Hiredis
         ASTERISK = "*".freeze
 
         attr_accessor :parent
+        attr_accessor :multi_bulk
 
         def initialize(buffer, parent = nil)
           @buffer, @parent = buffer, parent
@@ -41,9 +42,12 @@ module Hiredis
           parent ? parent.root : self
         end
 
+        # Set error ivar on object itself when this is the root task,
+        # otherwise on the root multi bulk.
         def set_error_object(err)
-          if !instance_variable_defined?(:@__hiredis_error)
-            instance_variable_set(:@__hiredis_error, err)
+          obj = parent ? root.multi_bulk : err
+          if !obj.instance_variable_defined?(:@__hiredis_error)
+            obj.instance_variable_set(:@__hiredis_error, err)
           end
         end
 
@@ -54,7 +58,7 @@ module Hiredis
         def process_error_reply
           if str = @buffer.read_line
             error = RuntimeError.new(str)
-            root.set_error_object(error)
+            set_error_object(error)
             reset!
             error
           else
