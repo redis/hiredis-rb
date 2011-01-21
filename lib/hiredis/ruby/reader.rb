@@ -159,20 +159,19 @@ module Hiredis
         def read(bytes, skip = 0)
           start = @pos
           stop = start + bytes + skip
+          return nil if @length < stop
 
-          if @length >= stop
-            @pos = stop
-            @buffer[start, bytes]
-          end
+          @pos = stop
+          @buffer[start, bytes]
         end
 
         def read_line
           start = @pos
           stop = @buffer.index(CRLF, @pos)
-          if stop
-            @pos = stop + 2 # include CRLF
-            @buffer[start, stop - start]
-          end
+          return unless stop
+
+          @pos = stop + 2 # include CRLF
+          @buffer[start, stop - start]
         end
       end
     end
