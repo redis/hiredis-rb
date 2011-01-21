@@ -72,17 +72,10 @@ module Hiredis
 
         def process_bulk_reply
           bulk_length = @line.to_i
+          return nil if bulk_length < 0
 
-          if bulk_length >= 0
-            reply = @buffer.read(bulk_length, 2)
-            if reply.nil?
-              false
-            else
-              reply
-            end
-          else
-            nil
-          end
+          # Caught by caller function when false
+          @buffer.read(bulk_length, 2)
         end
 
         def process_multi_bulk_reply
@@ -111,7 +104,7 @@ module Hiredis
 
         def process
           @line ||= @buffer.read_line
-          return false if @line.nil?
+          return false if @line == false
 
           @type ||= @line.slice!(0)
           reply = send(METHOD_INDEX[@type] || :process_protocol_error)
@@ -159,7 +152,7 @@ module Hiredis
         def read(bytes, skip = 0)
           start = @pos
           stop = start + bytes + skip
-          return nil if @length < stop
+          return false if @length < stop
 
           @pos = stop
           @buffer[start, bytes]
@@ -168,7 +161,7 @@ module Hiredis
         def read_line
           start = @pos
           stop = @buffer.index(CRLF, @pos)
-          return unless stop
+          return false unless stop
 
           @pos = stop + 2 # include CRLF
           @buffer[start, stop - start]
