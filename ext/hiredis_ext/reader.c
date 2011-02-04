@@ -17,10 +17,6 @@ static void *tryParentize(const redisReadTask *task, VALUE v) {
     return (void*)v;
 }
 
-static VALUE object_contains_error(VALUE self) {
-    return Qtrue;
-}
-
 static void *createStringObject(const redisReadTask *task, char *str, size_t len) {
     VALUE v, enc;
     v = rb_str_new(str,len);
@@ -79,7 +75,6 @@ static VALUE reader_allocate(VALUE klass) {
 
 static VALUE reader_feed(VALUE klass, VALUE str) {
     void *reader;
-    unsigned int size;
 
     if (TYPE(str) != T_STRING)
         rb_raise(rb_eTypeError, "not a string");
