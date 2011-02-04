@@ -18,4 +18,4 @@ system("cd #{bundled_hiredis_dir} && make static") if File.directory?(bundled_hi
 
 need_header('hiredis.h')
 need_library('hiredis', 'redisReplyReaderCreate')
-create_makefile('hiredis/hiredis_ext')
+create_makefile('hiredis/ext/hiredis_ext')
