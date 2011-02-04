@@ -6,9 +6,6 @@ static VALUE enc_klass;
 static ID enc_default_external = 0;
 static ID str_force_encoding = 0;
 
-/* Singleton method to test if the reply contains an error. */
-ID ivar_hiredis_error;
-
 /* Add VALUE to parent when the redisReadTask has a parent.
  * Note that the parent should always be of type T_ARRAY. */
 static void *tryParentize(const redisReadTask *task, VALUE v) {
@@ -36,17 +33,6 @@ static void *createStringObject(const redisReadTask *task, char *str, size_t len
 
     if (task->type == REDIS_REPLY_ERROR) {
         v = rb_funcall(rb_eRuntimeError,rb_intern("new"),1,v);
-        rb_ivar_set(v,ivar_hiredis_error,v);
-
-        if (task && task->parent != NULL) {
-            /* Also make the parent respond to this method. Redis currently
-             * only emits nested multi bulks of depth 2, so we don't need
-             * to cascade setting this ivar. Make sure to only set the first
-             * error reply on the parent. */
-            VALUE parent = (VALUE)task->parent->obj;
-            if (!rb_ivar_defined(parent,ivar_hiredis_error))
-                rb_ivar_set(parent,ivar_hiredis_error,v);
-        }
     }
 
     return tryParentize(task,v);
@@ -122,7 +108,6 @@ void InitReader(VALUE mod) {
     rb_define_alloc_func(klass_reader, reader_allocate);
     rb_define_method(klass_reader, "feed", reader_feed, 1);
     rb_define_method(klass_reader, "gets", reader_gets, 0);
-    ivar_hiredis_error = rb_intern("@__hiredis_error");
 
     /* If the Encoding class is present, #default_external should be used to
      * determine the encoding for new strings. The "enc_default_external"

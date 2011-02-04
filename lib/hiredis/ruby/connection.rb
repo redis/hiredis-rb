@@ -73,9 +73,6 @@ module Hiredis
           @reader.feed @sock.sysread(1024)
         end
 
-        error = reply.instance_variable_get(:@__hiredis_error)
-        raise error if error
-
         reply
       rescue EOFError
         raise Errno::ECONNRESET

@@ -71,9 +71,9 @@ module ConnectionTests
     @conn.connect("localhost", 6379)
     @conn.write(["GET"])
 
-    assert_raise RuntimeError, /wrong number of arguments/i do
-      @conn.read
-    end
+    err = @conn.read
+    assert_match /wrong number of arguments/i, err.message
+    assert_kind_of RuntimeError, err
   end
 end
 

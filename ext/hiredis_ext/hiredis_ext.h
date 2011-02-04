@@ -10,7 +10,6 @@ extern VALUE mod_hiredis;
 /* Defined in reader.c */
 extern redisReplyObjectFunctions redisExtReplyObjectFunctions;
 extern VALUE klass_reader;
-extern ID ivar_hiredis_error; /* ivar used to store error reply ("-ERR message") */
 extern void InitReader(VALUE module);
 
 /* Defined in connection.c */

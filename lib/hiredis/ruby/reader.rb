@@ -46,22 +46,12 @@ module Hiredis
           parent ? parent.root : self
         end
 
-        # Set error ivar on object itself when this is the root task,
-        # otherwise on the root multi bulk.
-        def set_error_object(err)
-          obj = parent ? root.multi_bulk : err
-          if !obj.instance_variable_defined?(:@__hiredis_error)
-            obj.instance_variable_set(:@__hiredis_error, err)
-          end
-          err
-        end
-
         def reset!
           @line = @type = @multi_bulk = nil
         end
 
         def process_error_reply
-          set_error_object RuntimeError.new(@line)
+          RuntimeError.new(@line)
         end
 
         def process_status_reply
