@@ -31,6 +31,12 @@ module ConnectionTests
     assert !@conn.connected?
   end
 
+  def test_connect_tcp_with_timeout
+    assert_raise Errno::ETIMEDOUT do
+      @conn.connect("1.1.1.1", 59876, 500_000)
+    end
+  end
+
   def test_read_when_disconnected
     assert_raise RuntimeError, "not connected" do
       @conn.read

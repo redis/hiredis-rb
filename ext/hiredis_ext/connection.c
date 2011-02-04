@@ -85,28 +85,76 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c) {
     return Qnil;
 }
 
-static VALUE connection_connect(VALUE self, VALUE _host, VALUE _port) {
+static struct timeval __timeout_from_robj(VALUE usecs) {
+    int s = NUM2INT(usecs)/1000000;
+    int us = NUM2INT(usecs)-(s*1000000);
+    struct timeval timeout = { s, us };
+    return timeout;
+}
+
+static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
     redisParentContext *pc;
     redisContext *c;
-    char *host = StringValuePtr(_host);
-    int port = NUM2INT(_port);
+    VALUE *_host = NULL;
+    VALUE *_port = NULL;
+    VALUE *_timeout = NULL;
+    char *host;
+    int port;
+    struct timeval timeout;
+
+    if (argc == 2 || argc == 3) {
+        _host = &argv[0];
+        _port = &argv[1];
+        if (argc == 3)
+            _timeout = &argv[2];
+    } else {
+        rb_raise(rb_eArgError, "invalid number of arguments");
+        return Qnil;
+    }
 
     Data_Get_Struct(self,redisParentContext,pc);
     parent_context_try_free(pc);
 
-    c = redisConnect(host,port);
+    host = StringValuePtr(*_host);
+    port = NUM2INT(*_port);
+    if (_timeout != NULL) {
+        timeout = __timeout_from_robj(*_timeout);
+        c = redisConnectWithTimeout(host,port,timeout);
+    } else {
+        c = redisConnect(host,port);
+    }
+
     return connection_generic_connect(self,c);
 }
 
-static VALUE connection_connect_unix(VALUE self, VALUE _path) {
+static VALUE connection_connect_unix(int argc, VALUE *argv, VALUE self) {
     redisParentContext *pc;
     redisContext *c;
-    char *path = StringValuePtr(_path);
+    VALUE *_path = NULL;
+    VALUE *_timeout = NULL;
+    char *path;
+    struct timeval timeout;
+
+    if (argc == 1 || argc == 2) {
+        _path = &argv[0];
+        if (argc == 2)
+            _timeout = &argv[1];
+    } else {
+        rb_raise(rb_eArgError, "invalid number of arguments");
+        return Qnil;
+    }
 
     Data_Get_Struct(self,redisParentContext,pc);
     parent_context_try_free(pc);
 
-    c = redisConnectUnix(path);
+    path = StringValuePtr(*_path);
+    if (_timeout != NULL) {
+        timeout = __timeout_from_robj(*_timeout);
+        c = redisConnectUnixWithTimeout(path,timeout);
+    } else {
+        c = redisConnectUnix(path);
+    }
+
     return connection_generic_connect(self,c);
 }
 
@@ -222,8 +270,8 @@ VALUE error_eof;
 void InitConnection(VALUE mod) {
     klass_connection = rb_define_class_under(mod, "Connection", rb_cObject);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
-    rb_define_method(klass_connection, "connect", connection_connect, 2);
-    rb_define_method(klass_connection, "connect_unix", connection_connect_unix, 1);
+    rb_define_method(klass_connection, "connect", connection_connect, -1);
+    rb_define_method(klass_connection, "connect_unix", connection_connect_unix, -1);
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
     rb_define_method(klass_connection, "timeout=", connection_set_timeout, 1);

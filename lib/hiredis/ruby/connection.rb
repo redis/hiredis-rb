@@ -1,4 +1,5 @@
 require "socket"
+require "timeout"
 require "hiredis/ruby/reader"
 require "hiredis/version"
 
@@ -14,12 +15,18 @@ module Hiredis
         !! @sock
       end
 
-      def connect(host, port)
+      def connect(host, port, usecs = 0)
         @reader = ::Hiredis::Ruby::Reader.new
 
         begin
-          @sock = TCPSocket.new(host, port)
-          @sock.setsockopt Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1
+          begin
+            Timeout.timeout(usecs.to_f / 1_000_000) do
+              @sock = TCPSocket.new(host, port)
+              @sock.setsockopt Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1
+            end
+          rescue Timeout::Error
+            raise Errno::ETIMEDOUT
+          end
         rescue SocketError => error
           # Raise RuntimeError when host cannot be resolved
           if error.message.start_with?("getaddrinfo:")
@@ -30,9 +37,16 @@ module Hiredis
         end
       end
 
-      def connect_unix(path)
+      def connect_unix(path, usecs = 0)
         @reader = ::Hiredis::Ruby::Reader.new
-        @sock = UNIXSocket.new(path)
+
+        begin
+          Timeout.timeout(usecs.to_f / 1_000_000) do
+            @sock = UNIXSocket.new(path)
+          end
+        rescue Timeout::Error
+          raise Errno::ETIMEDOUT
+        end
       end
 
       def disconnect
