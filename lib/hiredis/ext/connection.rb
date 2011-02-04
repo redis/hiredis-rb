@@ -1,4 +1,5 @@
-require 'hiredis/ext/hiredis_ext'
+require "hiredis/ext/hiredis_ext"
+require "hiredis/version"
 
 module Hiredis
   module Ext

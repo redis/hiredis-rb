@@ -1,5 +1,6 @@
 require "socket"
 require "hiredis/ruby/reader"
+require "hiredis/version"
 
 module Hiredis
   module Ruby

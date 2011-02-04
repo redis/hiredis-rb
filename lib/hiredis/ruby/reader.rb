@@ -1,3 +1,5 @@
+require "hiredis/version"
+
 module Hiredis
   module Ruby
     class Reader
