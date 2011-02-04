@@ -30,6 +30,11 @@ module Hiredis
         end
       end
 
+      def connect_unix(path)
+        @reader = ::Hiredis::Ruby::Reader.new
+        @sock = UNIXSocket.new(path)
+      end
+
       def disconnect
         @sock.close
       rescue

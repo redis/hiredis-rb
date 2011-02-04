@@ -58,18 +58,13 @@ static VALUE connection_parent_context_alloc(VALUE klass) {
     return Data_Wrap_Struct(klass, parent_context_mark, parent_context_free, pc);
 }
 
-static VALUE connection_connect(VALUE self, VALUE _host, VALUE _port) {
+static VALUE connection_generic_connect(VALUE self, redisContext *c) {
     redisParentContext *pc;
-    redisContext *c;
-    char *host = StringValuePtr(_host);
-    int port = NUM2INT(_port);
     int err;
     char errstr[1024];
 
     Data_Get_Struct(self,redisParentContext,pc);
-    parent_context_try_free(pc);
 
-    c = redisConnect(host,port);
     if (c->err) {
         /* Copy error and free context */
         err = c->err;
@@ -88,6 +83,31 @@ static VALUE connection_connect(VALUE self, VALUE _host, VALUE _port) {
     redisSetReplyObjectFunctions(c,&redisExtReplyObjectFunctions);
     pc->context = c;
     return Qnil;
+}
+
+static VALUE connection_connect(VALUE self, VALUE _host, VALUE _port) {
+    redisParentContext *pc;
+    redisContext *c;
+    char *host = StringValuePtr(_host);
+    int port = NUM2INT(_port);
+
+    Data_Get_Struct(self,redisParentContext,pc);
+    parent_context_try_free(pc);
+
+    c = redisConnect(host,port);
+    return connection_generic_connect(self,c);
+}
+
+static VALUE connection_connect_unix(VALUE self, VALUE _path) {
+    redisParentContext *pc;
+    redisContext *c;
+    char *path = StringValuePtr(_path);
+
+    Data_Get_Struct(self,redisParentContext,pc);
+    parent_context_try_free(pc);
+
+    c = redisConnectUnix(path);
+    return connection_generic_connect(self,c);
 }
 
 static VALUE connection_is_connected(VALUE self) {
@@ -203,6 +223,7 @@ void InitConnection(VALUE mod) {
     klass_connection = rb_define_class_under(mod, "Connection", rb_cObject);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
     rb_define_method(klass_connection, "connect", connection_connect, 2);
+    rb_define_method(klass_connection, "connect_unix", connection_connect_unix, 1);
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
     rb_define_method(klass_connection, "timeout=", connection_set_timeout, 1);

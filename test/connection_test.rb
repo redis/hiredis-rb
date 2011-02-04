@@ -15,9 +15,17 @@ module ConnectionTests
     end
   end
 
-  def test_connected?
+  def test_connected_tcp
     assert !@conn.connected?
     @conn.connect("localhost", 6379)
+    assert @conn.connected?
+    @conn.disconnect
+    assert !@conn.connected?
+  end
+
+  def test_connect_unix
+    assert !@conn.connected?
+    @conn.connect_unix("/tmp/redis.sock")
     assert @conn.connected?
     @conn.disconnect
     assert !@conn.connected?
