@@ -6,8 +6,51 @@
 #
 #   ruby -rubygems -Ilib examples/em.rb [pub|sub]
 #
-require 'eventmachine'
-require 'hiredis/em'
+require "eventmachine"
+require "hiredis/reader"
+
+module Hiredis
+
+  module EM
+
+    class Connection < ::EM::Connection
+
+      CRLF = "\r\n".freeze
+
+      def initialize
+        super
+        @reader = Reader.new
+        @callbacks = []
+      end
+
+      def receive_data(data)
+        @reader.feed(data)
+        until (reply = @reader.gets) == false
+          receive_reply(reply)
+        end
+      end
+
+      def receive_reply(reply)
+        callback = @callbacks.shift
+        callback.call(reply) if callback
+      end
+
+      def send_command(*args)
+        args = args.flatten
+        send_data("*" + args.size.to_s + CRLF)
+        args.each do |arg|
+          arg = arg.to_s
+          send_data("$" + arg.size.to_s + CRLF + arg + CRLF)
+        end
+      end
+
+      def method_missing(sym, *args, &callback)
+        send_command(sym, *args)
+        @callbacks.push callback
+      end
+    end
+  end
+end
 
 $cnt = 0
 
