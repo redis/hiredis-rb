@@ -3,10 +3,6 @@
 Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis) reply
 parsing code. It is targeted at speeding up parsing multi bulk replies.
 
-## WARNING
-
-This code is considered beta.
-
 ## Install
 
 Install with Rubygems:
