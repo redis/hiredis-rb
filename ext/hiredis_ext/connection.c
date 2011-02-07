@@ -179,6 +179,7 @@ static VALUE connection_disconnect(VALUE self) {
 static VALUE connection_write(VALUE self, VALUE command) {
     redisParentContext *pc;
     int argc;
+    VALUE *args;
     char **argv = NULL;
     size_t *alen = NULL;
     int i;
@@ -193,12 +194,15 @@ static VALUE connection_write(VALUE self, VALUE command) {
         rb_raise(rb_eRuntimeError,"%s","not connected");
 
     argc = (int)RARRAY_LEN(command);
+    args = RARRAY_PTR(command);
     argv = malloc(argc*sizeof(char*));
     alen = malloc(argc*sizeof(size_t));
     for (i = 0; i < argc; i++) {
-        VALUE arg = rb_obj_as_string(RARRAY_PTR(command)[i]);
-        argv[i] = RSTRING_PTR(arg);
-        alen[i] = RSTRING_LEN(arg);
+        /* Replace arguments in the arguments array to prevent their string
+         * equivalents to be garbage collected before this loop is done. */
+        args[i] = rb_obj_as_string(args[i]);
+        argv[i] = RSTRING_PTR(args[i]);
+        alen[i] = RSTRING_LEN(args[i]);
     }
     redisAppendCommandArgv(pc->context,argc,(const char**)argv,alen);
     free(argv);
