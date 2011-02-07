@@ -1,3 +1,8 @@
+### 0.3.1
+
+* Fix bug where one or more arguments passed to #write were garbage collected
+  before being appended to the write buffer.
+
 ### 0.3.0
 
 * Modify `Connection#connect` and `Connection#connect_unix` to accept an extra
