@@ -11,18 +11,26 @@ Install with Rubygems:
 
 ## Usage
 
-When you `require "hiredis"`, redis-rb will be automatically loaded and setup
-to use hiredis for its connection handling.
+Hiredis can be used as standalone library, or be used together with redis-rb.
+The latter adds in support for hiredis in 2.2 (unreleased at the time of
+writing).
 
-    >> redis = Redis.new
-    => #<Redis client v2.1.1...>
+### redis-rb
 
-    >> redis.client.connection
-    => #<Hiredis::Connection:0x0000010085ac40>
+To use hiredis from redis-rb, it needs to be available in Ruby's load path.
+Using Bundler, this comes down to adding the following line:
+
+    gem "hiredis", "~> 0.3.0"
+
+Until redis-rb 2.2 is released, you need to depend on
+[this](https://github.com/ezmobius/redis-rb/commit/aa3951) version of redis-rb
+for for hiredis to be automatically picked up:
+
+    gem "redis", :git => "git://github.com/ezmobius/redis-rb.git", :ref => "aa3951"
 
 You can use Redis normally, as you would with the pure Ruby version.
 
-### Connection
+### Standalone: Connection
 
 A connection to Redis can be opened by creating an instance of
 `Hiredis::Connection` and calling `#connect`:
@@ -53,16 +61,16 @@ When the connection was closed by the server, an error of the type
 the Ruby built-in `Errno::*` errors will be raised. All other errors
 (such as a protocol error) result in a `RuntimeError`.
 
-You can stop hiredis from requiring redis-rb by simply requiring `hiredis/connection`.
-This only loads the connection class and skips loading redis-rb.
+You can skip loading everything and just load `Hiredis::Connection` by
+requiring `hiredis/connection`.
 
-### Reply parser
+### Standalone: Reply parser
 
 Only using hiredis for the reply parser can be very useful in scenarios
 where the I/O is already handled by another component (such as EventMachine).
 
-You can stop hiredis from requiring redis-rb by simply requiring `hiredis/reader`.
-This only loads the reader class and skips loading redis-rb.
+You can skip loading everything and just load `Hiredis::Reader` by requiring
+`hiredis/reader`.
 
 Use `#feed` on an instance of `Hiredis::Reader` to feed the stream parser with
 new data. Use `#read` to get the parsed replies one by one:
