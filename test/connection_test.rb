@@ -1,6 +1,6 @@
 require 'test/unit'
+require 'hiredis/ext/connection' unless RUBY_PLATFORM =~ /java/
 require 'hiredis/ruby/connection'
-require 'hiredis/ext/connection'
 
 module ConnectionTests
   def test_connect_wrong_host

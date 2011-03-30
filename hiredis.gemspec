@@ -10,15 +10,21 @@ Gem::Specification.new do |s|
   s.description = s.summary
 
   s.require_path = "lib"
-  s.extensions = Dir["ext/**/extconf.rb"]
+  s.files = []
 
-  ext_files = Dir["ext/**/*.{rb,c,h}"]
-  lib_files = Dir["lib/**/*.rb"]
-  hiredis_files = Dir["vendor/hiredis/*.{c,h}"] -
-        Dir["vendor/hiredis/example*"] +
-        Dir["vendor/hiredis/COPYING"] +
-        Dir["vendor/hiredis/Makefile"]
-  s.files = %w(COPYING Rakefile) + ext_files + lib_files + hiredis_files
+  if RUBY_PLATFORM =~ /java/
+    s.platform = "java"
+  else
+    s.extensions = Dir["ext/**/extconf.rb"]
+    s.files += Dir["ext/**/*.{rb,c,h}"]
+    s.files += Dir["vendor/hiredis/*.{c,h}"] -
+      Dir["vendor/hiredis/example*"] +
+      Dir["vendor/hiredis/COPYING"] +
+      Dir["vendor/hiredis/Makefile"]
+  end
+
+  s.files += Dir["lib/**/*.rb"]
+  s.files += %w(COPYING Rakefile)
 
   s.add_development_dependency "rake-compiler", "~> 0.7.1"
 end

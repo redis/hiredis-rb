@@ -1,6 +1,6 @@
 require 'test/unit'
+require 'hiredis/ext/reader' unless RUBY_PLATFORM =~ /java/
 require 'hiredis/ruby/reader'
-require 'hiredis/ext/reader'
 
 module ReaderTests
   def test_false_on_empty_buffer
