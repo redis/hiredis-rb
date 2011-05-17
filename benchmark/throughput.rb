@@ -5,24 +5,28 @@
 #   $ ruby -Ilib benchmark/throughput.rb
 #
 
-require 'rubygems'
-require 'benchmark'
-require 'stringio'
+require "rubygems"
+require "benchmark"
+require "redis/connection/hiredis"
+require "redis/connection/ruby"
+require "redis"
 
-require 'redis'
-RubyConnection = Redis::Connection
+DB = 9
 
-require 'hiredis'
-NativeConnection = Hiredis::Connection
-
-$ruby = Redis.new
-$ruby.client.instance_variable_set(:@connection,RubyConnection.new)
-$native = Redis.new
-$native.client.instance_variable_set(:@connection,NativeConnection.new)
+$ruby = Redis.new(:db => DB)
+$ruby.client.instance_variable_set(:@connection,Redis::Connection::Ruby.new)
+$hiredis = Redis.new(:db => DB)
+$hiredis.client.instance_variable_set(:@connection,Redis::Connection::Hiredis.new)
 
 # make sure both are connected
 $ruby.ping
-$native.ping
+$hiredis.ping
+
+# test if db is empty
+if $ruby.dbsize > 0
+  STDERR.puts "Database \##{DB} is not empty!"
+  exit 1
+end
 
 def pipeline(b,num,size,title,cmd)
   commands = size.times.map { cmd }
@@ -36,18 +40,30 @@ def pipeline(b,num,size,title,cmd)
 
   b.report(" hiredis: %2dx #{title} pipeline, #{num} times" % size) {
     num.times {
-      $native.client.call_pipelined(commands)
+      $hiredis.client.call_pipelined(commands)
     }
   }
 end
 
 Benchmark.bm(50) do |b|
-  pipeline(b,10000, 1, "PING", %w(ping))
-  pipeline(b,10000,10, "PING", %w(ping))
   pipeline(b,10000, 1, "SET", %w(set foo bar))
   pipeline(b,10000,10, "SET", %w(set foo bar))
+  puts
+
   pipeline(b,10000, 1, "GET", %w(get foo))
   pipeline(b,10000,10, "GET", %w(get foo))
-  pipeline(b,1000, 1, "MGET(10)", %w(mget) + (["foo"] * 10))
-  pipeline(b,1000,10, "MGET(10)", %w(mget) + (["foo"] * 10))
+  puts
+
+  pipeline(b,10000, 1, "LPUSH", %w(lpush list fooz))
+  pipeline(b,10000,10, "LPUSH", %w(lpush list fooz))
+  puts
+
+  pipeline(b,1000, 1, "LRANGE(100)", %w(lrange list 0  99))
+  puts
+
+  pipeline(b,1000, 1, "LRANGE(1000)", %w(lrange list 0 999))
+  puts
+
+  # Clean up...
+  $ruby.flushdb
 end
