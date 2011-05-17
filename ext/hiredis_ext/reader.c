@@ -61,38 +61,35 @@ redisReplyObjectFunctions redisExtReplyObjectFunctions = {
     freeObject
 };
 
-static void reader_mark(void *reader) {
-    VALUE root;
-    root = (VALUE)redisReplyReaderGetObject(reader);
+static void reader_mark(redisReader *reader) {
+    VALUE root = (VALUE)reader->reply;
     if (root != 0 && TYPE(root) == T_ARRAY) rb_gc_mark(root);
 }
 
 static VALUE reader_allocate(VALUE klass) {
-    void *reader = redisReplyReaderCreate();
-    redisReplyReaderSetReplyObjectFunctions(reader,&redisExtReplyObjectFunctions);
-    return Data_Wrap_Struct(klass, reader_mark, redisReplyReaderFree, reader);
+    redisReader *reader = redisReaderCreate();
+    reader->fn = &redisExtReplyObjectFunctions;
+    return Data_Wrap_Struct(klass, reader_mark, redisReaderFree, reader);
 }
 
 static VALUE reader_feed(VALUE klass, VALUE str) {
-    void *reader;
+    redisReader *reader;
 
     if (TYPE(str) != T_STRING)
         rb_raise(rb_eTypeError, "not a string");
 
-    Data_Get_Struct(klass, void, reader);
-    redisReplyReaderFeed(reader,RSTRING_PTR(str),(size_t)RSTRING_LEN(str));
+    Data_Get_Struct(klass, redisReader, reader);
+    redisReaderFeed(reader,RSTRING_PTR(str),(size_t)RSTRING_LEN(str));
     return INT2NUM(0);
 }
 
 static VALUE reader_gets(VALUE klass) {
-    void *reader;
+    redisReader *reader;
     VALUE reply;
 
-    Data_Get_Struct(klass, void, reader);
-    if (redisReplyReaderGetReply(reader,(void**)&reply) != REDIS_OK) {
-        char *errstr = redisReplyReaderGetError(reader);
-        rb_raise(rb_eRuntimeError,"%s",errstr);
-    }
+    Data_Get_Struct(klass, redisReader, reader);
+    if (redisReaderGetReply(reader,(void**)&reply) != REDIS_OK)
+        rb_raise(rb_eRuntimeError,"%s",reader->errstr);
 
     return reply;
 }

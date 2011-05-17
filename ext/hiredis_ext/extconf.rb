@@ -17,5 +17,5 @@ dir_config('hiredis', bundled_hiredis_dir, bundled_hiredis_dir)
 system("cd #{bundled_hiredis_dir} && make static") if File.directory?(bundled_hiredis_dir)
 
 need_header('hiredis.h')
-need_library('hiredis', 'redisReplyReaderCreate')
+need_library('hiredis', 'redisReaderCreate')
 create_makefile('hiredis/ext/hiredis_ext')

@@ -80,7 +80,7 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c) {
         }
     }
 
-    redisSetReplyObjectFunctions(c,&redisExtReplyObjectFunctions);
+    c->reader->fn = &redisExtReplyObjectFunctions;
     pc->context = c;
     return Qnil;
 }
