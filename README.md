@@ -1,7 +1,8 @@
 # hiredis-rb
 
-Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis) reply
-parsing code. It is targeted at speeding up parsing multi bulk replies.
+Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis). Both
+the synchronous connection API and a separate protocol reader are supported.
+It is primarily intended to speed up parsing multi bulk replies.
 
 ## Install
 
@@ -12,21 +13,27 @@ Install with Rubygems:
 ## Usage
 
 Hiredis can be used as standalone library, or be used together with redis-rb.
-The latter adds in support for hiredis in 2.2 (unreleased at the time of
-writing).
+The latter adds in support for hiredis in 2.2.
 
 ### redis-rb
 
 To use hiredis from redis-rb, it needs to be available in Ruby's load path.
-Using Bundler, this comes down to adding the following line:
+Using Bundler, this comes down to adding the following lines:
 
-    gem "hiredis", "~> 0.3.0"
+``` ruby
+gem "hiredis", "~> 0.3.0"
+gem "redis", ">= 2.2.0"
+```
 
-Until redis-rb 2.2 is released, you need to depend on
-[this](https://github.com/ezmobius/redis-rb/commit/aa3951) version of redis-rb
-for for hiredis to be automatically picked up:
+To use hiredis with redis-rb, you need to require `redis/connection/hiredis`
+before creating a new connection. This makes sure that hiredis will be used
+instead of the pure Ruby connection code and protocol parser. Doing so in the
+Gemfile is done by adding a `:require` option to the line adding the redis-rb
+dependency:
 
-    gem "redis", :git => "git://github.com/ezmobius/redis-rb.git", :ref => "aa3951"
+``` ruby
+gem "redis", ">= 2.2.0", :require => ["redis", "redis/connection/hiredis"]
+```
 
 You can use Redis normally, as you would with the pure Ruby version.
 
@@ -35,26 +42,32 @@ You can use Redis normally, as you would with the pure Ruby version.
 A connection to Redis can be opened by creating an instance of
 `Hiredis::Connection` and calling `#connect`:
 
-    >> conn = Hiredis::Connection.new
-    >> conn.connect("127.0.0.1", 6379)
+``` ruby
+conn = Hiredis::Connection.new
+conn.connect("127.0.0.1", 6379)
+```
 
 Commands can be written to Redis by calling `#write` with an array of
 arguments. You can call write more than once, resulting in a pipeline of
 commands.
 
-    >> conn.write ["SET", "speed", "awesome"]
-    >> conn.write ["GET", "speed"]
+``` ruby
+conn.write ["SET", "speed", "awesome"]
+conn.write ["GET", "speed"]
+```
 
 After commands are written, use `#read` to receive the subsequent replies.
 Make sure **not** to call `#read` more than you have replies to read, or
 the connection will block indefinitely. You _can_ use this feature
 to implement a subscriber (for Redis Pub/Sub).
 
-    >> conn.read
-    => "OK"
+``` ruby
+>> conn.read
+=> "OK"
 
-    >> conn.read
-    => "awesome"
+>> conn.read
+=> "awesome"
+```
 
 When the connection was closed by the server, an error of the type
 `Hiredis::Connection::EOFError` will be raised. For all I/O related errors,
@@ -75,10 +88,12 @@ You can skip loading everything and just load `Hiredis::Reader` by requiring
 Use `#feed` on an instance of `Hiredis::Reader` to feed the stream parser with
 new data. Use `#read` to get the parsed replies one by one:
 
-    >> reader = Hiredis::Reader.new
-    >> reader.feed("*2\r\n$7\r\nawesome\r\n$5\r\narray\r\n")
-    >> reader.gets
-    => ["awesome", "array"]
+``` ruby
+>> reader = Hiredis::Reader.new
+>> reader.feed("*2\r\n$7\r\nawesome\r\n$5\r\narray\r\n")
+>> reader.gets
+=> ["awesome", "array"]
+```
 
 ## Benchmarks
 
