@@ -1,3 +1,10 @@
+### 0.3.2
+
+* Always statically link to the bundled hiredis version instead of searching
+  the system-wide paths.
+
+* Update hiredis to 0.10.0.
+
 ### 0.3.1
 
 * Fix bug where one or more arguments passed to #write were garbage collected
