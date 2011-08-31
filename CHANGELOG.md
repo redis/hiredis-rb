@@ -1,3 +1,10 @@
+### 0.4.0
+
+* Refactor pure Ruby connection class to use non-blocking I/O. This makes the
+  code more portable (w.r.t. timeouts on connect/read/write), and more friendly
+  towards threads running in the same interpreter (they can now be properly
+  scheduled while hiredis blocks on select(2)).
+
 ### 0.3.2
 
 * Always statically link to the bundled hiredis version instead of searching

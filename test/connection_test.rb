@@ -134,6 +134,25 @@ module ConnectionTests
     end
   end
 
+  # Test that the Hiredis thread is scheduled after some time while waiting for
+  # the descriptor to be readable.
+  def test_read_against_timeout_with_other_thread
+    thread = Thread.new do
+      sleep 0.1 while true
+    end
+
+    listen do |_|
+      hiredis.connect("localhost", DEFAULT_PORT)
+      hiredis.timeout = 10_000
+
+      assert_raise Errno::EAGAIN do
+        hiredis.read
+      end
+    end
+  ensure
+    thread.kill
+  end
+
   def test_raise_on_error_reply
     listen do |server|
       hiredis.connect("localhost", 6380)
