@@ -16,6 +16,13 @@ module ConnectionTests
         yield io
       ensure
         hiredis.disconnect if hiredis.connected?
+
+        # Connect to make sure netcat exits
+        begin
+          sock = TCPSocket.new("localhost", port)
+          sock.close
+        rescue
+        end
       end
     end
   end
