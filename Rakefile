@@ -34,6 +34,8 @@ else
 
 end
 
+task :default => [:build, :test]
+
 desc "Run tests"
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
