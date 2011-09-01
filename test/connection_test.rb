@@ -66,9 +66,25 @@ module ConnectionTests
   end
 
   def test_connect_tcp_with_timeout
+    hiredis.timeout = 200_000
+
+    t = Time.now
     assert_raise Errno::ETIMEDOUT do
-      hiredis.connect("1.1.1.1", 59876, 500_000)
+      hiredis.connect("1.1.1.1", 59876)
     end
+
+    assert 210_000 > (Time.now - t)
+  end
+
+  def test_connect_tcp_with_timeout_override
+    hiredis.timeout = 1_000_000
+
+    t = Time.now
+    assert_raise Errno::ETIMEDOUT do
+      hiredis.connect("1.1.1.1", 59876, 200_000)
+    end
+
+    assert 210_000 > (Time.now - t)
   end
 
   def test_read_when_disconnected
@@ -77,19 +93,9 @@ module ConnectionTests
     end
   end
 
-  def test_timeout_when_disconnected
-    assert_raise RuntimeError, "not connected" do
-      hiredis.timeout = 1
-    end
-  end
-
   def test_wrong_value_for_timeout
-    listen do |_|
-      hiredis.connect("localhost", DEFAULT_PORT)
-
-      assert_raise Errno::EDOM do
-        hiredis.timeout = -10
-      end
+    assert_raise ArgumentError do
+      hiredis.timeout = -10
     end
   end
 

@@ -178,12 +178,9 @@ module Hiredis
       end
 
       def timeout=(usecs)
-        raise "not connected" unless connected?
+        raise ArgumentError.new("timeout should be positive") if usecs <= 0
 
         @timeout = usecs / 1_000_000.0
-
-        # Temporary hack to keep tests passing
-        raise Errno::EDOM if @timeout <= 0
 
         nil
       end
