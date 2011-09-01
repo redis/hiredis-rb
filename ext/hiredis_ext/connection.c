@@ -44,7 +44,7 @@ static void parent_context_raise(redisParentContext *pc) {
         break;
     case REDIS_ERR_EOF:
         /* Raise our own EOF error */
-        rb_raise(error_eof,"%s",errstr);
+        rb_raise(rb_eEOFError,"%s",errstr);
         break;
     default:
         /* Raise something else */
@@ -270,7 +270,6 @@ static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
 
 
 VALUE klass_connection;
-VALUE error_eof;
 void InitConnection(VALUE mod) {
     klass_connection = rb_define_class_under(mod, "Connection", rb_cObject);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
@@ -281,5 +280,4 @@ void InitConnection(VALUE mod) {
     rb_define_method(klass_connection, "timeout=", connection_set_timeout, 1);
     rb_define_method(klass_connection, "write", connection_write, 1);
     rb_define_method(klass_connection, "read", connection_read, 0);
-    error_eof = rb_define_class_under(klass_connection, "EOFError", rb_eStandardError);
 }

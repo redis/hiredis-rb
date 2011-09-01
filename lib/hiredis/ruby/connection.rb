@@ -220,8 +220,6 @@ module Hiredis
         end
 
         reply
-      rescue EOFError
-        raise Errno::ECONNRESET
       end
 
     protected
