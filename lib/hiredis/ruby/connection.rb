@@ -6,11 +6,21 @@ module Hiredis
   module Ruby
     class Connection
 
-      def self.errno_to_class
-        @mapping ||= Hash[Errno.constants.map do |name|
-          klass = Errno.const_get(name)
-          [klass.const_get("Errno"), klass]
-        end]
+      if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
+
+        def self.errno_to_class
+          Errno::Mapping
+        end
+
+      else
+
+        def self.errno_to_class
+          @mapping ||= Hash[Errno.constants.map do |name|
+            klass = Errno.const_get(name)
+            [klass.const_get("Errno"), klass]
+          end]
+        end
+
       end
 
       if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
