@@ -218,6 +218,67 @@ module ConnectionTests
       assert formatted == server.read
     end
   end
+
+  def test_eagain_on_write
+    listen do |server|
+      hiredis.connect("localhost", 6380)
+      hiredis.timeout = 100_000
+
+      # Find out send buffer size
+      sock = Socket.for_fd(hiredis.fileno)
+      sndbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).unpack("i").first
+
+      # Find out receive buffer size
+      sock = Socket.for_fd(hiredis.fileno)
+      rcvbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_RCVBUF).unpack("i").first
+
+      # Make request that fills both the remote receive buffer and the local
+      # send buffer. This assumes that the size of the receive buffer on the
+      # remote end is equal to our local receive buffer size.
+      assert_raise Errno::EAGAIN do
+        hiredis.write(["x" * rcvbuf])
+        hiredis.write(["x" * sndbuf])
+        hiredis.flush
+      end
+    end
+  end
+
+  def test_eagain_on_write_followed_by_remote_drain
+    listen do |server|
+      hiredis.connect("localhost", 6380)
+      hiredis.timeout = 100_000
+
+      # Find out send buffer size
+      sock = Socket.for_fd(hiredis.fileno)
+      sndbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).unpack("i").first
+
+      # Find out receive buffer size
+      sock = Socket.for_fd(hiredis.fileno)
+      rcvbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_RCVBUF).unpack("i").first
+
+      # This thread starts reading the server buffer after 50ms. This will
+      # cause the local write to first return EAGAIN, wait for the socket to
+      # become writable with select(2) and retry.
+      begin
+        thread = Thread.new do
+          sleep(0.050)
+          loop do
+            server.read(1024)
+          end
+        end
+
+        # Make request that fills both the remote receive buffer and the local
+        # send buffer. This assumes that the size of the receive buffer on the
+        # remote end is equal to our local receive buffer size.
+        hiredis.write(["x" * rcvbuf])
+        hiredis.write(["x" * sndbuf])
+        hiredis.flush
+        hiredis.disconnect
+      ensure
+        thread.kill
+      end
+    end
+  end
 end
 
 if defined?(Hiredis::Ruby::Connection)
