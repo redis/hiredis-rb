@@ -8,21 +8,28 @@ module ConnectionTests
 
   DEFAULT_PORT = 6380
 
+  def knock(port)
+    sock = TCPSocket.new("localhost", port)
+    sock.close
+  rescue
+  end
+
   def listen(port = DEFAULT_PORT)
     IO.popen("nc -l #{port}", "r+") do |io|
       sleep 0.05 # Give nc a little time to start listening
 
       begin
+        Thread.new do
+          sleep 10 # Tests should complete in 10s
+          knock port
+        end
+
         yield io
       ensure
         hiredis.disconnect if hiredis.connected?
 
         # Connect to make sure netcat exits
-        begin
-          sock = TCPSocket.new("localhost", port)
-          sock.close
-        rescue
-        end
+        knock port
       end
     end
   end
