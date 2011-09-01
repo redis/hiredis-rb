@@ -49,6 +49,16 @@ module Hiredis
           sock
         end
 
+        def _write(sock, data, timeout)
+          begin
+            Timeout.timeout(timeout) do
+              sock.write(data)
+            end
+          rescue Timeout::Error
+            raise Errno::EAGAIN
+          end
+        end
+
       else
 
         def _connect(host, port, timeout)
@@ -97,6 +107,27 @@ module Hiredis
         def _connect_unix(path, timeout)
           sockaddr = Socket.pack_sockaddr_un(path)
           _connect_sockaddr(Socket::AF_UNIX, sockaddr, timeout)
+        end
+
+        def _write(sock, data, timeout)
+          data.force_encoding("binary") if data.respond_to?(:force_encoding)
+
+          begin
+            nwritten = @sock.write_nonblock(data)
+
+            while nwritten < string_size(data)
+              data = data[nwritten..-1]
+              nwritten = @sock.write_nonblock(data)
+            end
+          rescue Errno::EAGAIN
+            if IO.select([], [@sock], [], timeout)
+              # Writable, try again
+              retry
+            else
+              # Timed out, raise
+              raise Errno::EAGAIN
+            end
+          end
         end
 
         def _connect_sockaddr(af, sockaddr, timeout)
@@ -203,24 +234,8 @@ module Hiredis
         end
 
         data = command.join(COMMAND_DELIMITER) + COMMAND_DELIMITER
-        data.force_encoding("binary") if data.respond_to?(:force_encoding)
 
-        begin
-          nwritten = @sock.write_nonblock(data)
-
-          while nwritten < string_size(data)
-            data = data[nwritten..-1]
-            nwritten = @sock.write_nonblock(data)
-          end
-        rescue Errno::EAGAIN
-          if IO.select([], [@sock], [], @timeout)
-            # Writable, try again
-            retry
-          else
-            # Timed out, raise
-            raise Errno::EAGAIN
-          end
-        end
+        _write(@sock, data, @timeout)
 
         nil
       end
