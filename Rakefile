@@ -6,7 +6,7 @@ unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
 
   Rake::ExtensionTask.new('hiredis_ext') do |task|
     # Pass --with-foo-config args to extconf.rb
-    task.config_options = ARGV[1..-1]
+    task.config_options = ARGV[1..-1] || []
     task.lib_dir = File.join(*['lib', 'hiredis', 'ext'])
   end
 
