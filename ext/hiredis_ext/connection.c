@@ -164,7 +164,7 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c, VALUE arg_t
         goto sys_fail;
     }
 
-    parent_context_try_free(pc);
+    parent_context_try_free_context(pc);
     pc->context = c;
     pc->context->reader->fn = &redisExtReplyObjectFunctions;
     return Qnil;
