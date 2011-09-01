@@ -202,7 +202,31 @@ module Hiredis
           command << arg
         end
 
-        @sock.syswrite(command.join(COMMAND_DELIMITER) + COMMAND_DELIMITER)
+        data = command.join(COMMAND_DELIMITER) + COMMAND_DELIMITER
+        data.force_encoding("binary") if data.respond_to?(:force_encoding)
+
+        begin
+          nwritten = @sock.write_nonblock(data)
+
+          while nwritten < string_size(data)
+            data = data[nwritten..-1]
+            nwritten = @sock.write_nonblock(data)
+          end
+        rescue Errno::EAGAIN
+          if IO.select([], [@sock], [], @timeout)
+            # Writable, try again
+            retry
+          else
+            # Timed out, raise
+            raise Errno::EAGAIN
+          end
+        end
+
+        nil
+      end
+
+      # No-op for now..
+      def flush
       end
 
       def read

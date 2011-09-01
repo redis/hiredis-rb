@@ -197,6 +197,27 @@ module ConnectionTests
       assert_kind_of RuntimeError, err
     end
   end
+
+  def test_recover_from_partial_write
+    listen do |server|
+      hiredis.connect("localhost", 6380)
+
+      # Find out send buffer size
+      sock = Socket.for_fd(hiredis.fileno)
+      sndbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).unpack("i").first
+
+      # Make request that saturates the send buffer
+      hiredis.write(["x" * sndbuf])
+
+      # Flush and disconnect to signal EOF
+      hiredis.flush
+      hiredis.disconnect
+
+      # Compare to data received on the other end
+      formatted = "*1\r\n$#{sndbuf}\r\n#{"x" * sndbuf}\r\n"
+      assert formatted == server.read
+    end
+  end
 end
 
 if defined?(Hiredis::Ruby::Connection)

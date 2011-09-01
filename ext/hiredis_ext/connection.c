@@ -280,6 +280,41 @@ static VALUE connection_write(VALUE self, VALUE command) {
     return Qnil;
 }
 
+static VALUE connection_flush(VALUE self) {
+    redisParentContext *pc;
+    redisContext *c;
+    int wdone = 0;
+
+    Data_Get_Struct(self,redisParentContext,pc);
+    if (!pc->context)
+        rb_raise(rb_eRuntimeError, "not connected");
+
+    c = pc->context;
+    while (!wdone) {
+        errno = 0;
+
+        if (redisBufferWrite(c, &wdone) == REDIS_ERR) {
+            /* Socket error */
+            parent_context_raise(pc);
+        }
+
+        if (errno == EAGAIN) {
+            int writable = 0;
+
+            if (__wait_writable(c->fd, pc->timeout, &writable) < 0) {
+                rb_sys_fail(0);
+            }
+
+            if (!writable) {
+                errno = EAGAIN;
+                rb_sys_fail(0);
+            }
+        }
+    }
+
+    return Qnil;
+}
+
 static int __get_reply(redisParentContext *pc, VALUE *reply) {
     redisContext *c = pc->context;
     int wdone = 0;
@@ -410,5 +445,6 @@ void InitConnection(VALUE mod) {
     rb_define_method(klass_connection, "timeout=", connection_set_timeout, 1);
     rb_define_method(klass_connection, "fileno", connection_fileno, 0);
     rb_define_method(klass_connection, "write", connection_write, 1);
+    rb_define_method(klass_connection, "flush", connection_flush, 0);
     rb_define_method(klass_connection, "read", connection_read, 0);
 }
