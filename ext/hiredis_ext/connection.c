@@ -388,6 +388,16 @@ static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
     return Qnil;
 }
 
+static VALUE connection_fileno(VALUE self) {
+    redisParentContext *pc;
+
+    Data_Get_Struct(self,redisParentContext,pc);
+
+    if (!pc->context)
+        rb_raise(rb_eRuntimeError, "not connected");
+
+    return INT2NUM(pc->context->fd);
+}
 
 VALUE klass_connection;
 void InitConnection(VALUE mod) {
@@ -398,6 +408,7 @@ void InitConnection(VALUE mod) {
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
     rb_define_method(klass_connection, "timeout=", connection_set_timeout, 1);
+    rb_define_method(klass_connection, "fileno", connection_fileno, 0);
     rb_define_method(klass_connection, "write", connection_write, 1);
     rb_define_method(klass_connection, "read", connection_read, 0);
 }

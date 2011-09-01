@@ -51,6 +51,15 @@ module ConnectionTests
     socket.close if socket
   end
 
+  def test_connected_tcp_has_fileno
+    socket = TCPServer.new("127.0.0.1", 6380)
+
+    hiredis.connect("127.0.0.1", DEFAULT_PORT)
+    assert hiredis.fileno > $stderr.fileno
+  ensure
+    socket.close if socket
+  end
+
   def test_connect_unix
     path = "/tmp/hiredis-rb-test.sock"
     File.unlink(path) if File.exist?(path)
@@ -63,6 +72,23 @@ module ConnectionTests
     assert !hiredis.connected?
   ensure
     socket.close if socket
+  end
+
+  def test_connect_unix_has_fileno
+    path = "/tmp/hiredis-rb-test.sock"
+    File.unlink(path) if File.exist?(path)
+    socket = UNIXServer.new(path)
+
+    hiredis.connect_unix(path)
+    assert hiredis.fileno > $stderr.fileno
+  ensure
+    socket.close if socket
+  end
+
+  def test_fileno_when_disconnected
+    assert_raise RuntimeError, "not connected" do
+      hiredis.fileno
+    end
   end
 
   def test_connect_tcp_with_timeout

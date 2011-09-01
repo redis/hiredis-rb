@@ -185,6 +185,12 @@ module Hiredis
         nil
       end
 
+      def fileno
+        raise "not connected" unless connected?
+
+        @sock.fileno
+      end
+
       COMMAND_DELIMITER = "\r\n".freeze
 
       def write(args)
