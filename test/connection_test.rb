@@ -12,28 +12,23 @@ module ConnectionTests
     sock.getsockopt(Socket::SOL_SOCKET, opt).unpack("i").first
   end
 
-  def knock(port)
-    sock = TCPSocket.new("localhost", port)
-    sock.close
-  rescue
-  end
-
   def listen(port = DEFAULT_PORT)
     IO.popen("nc -l #{port}", "r+") do |io|
       sleep 0.1 # Give nc a little time to start listening
 
       begin
-        Thread.new do
+        timeout = Thread.new do
           sleep 10 # Tests should complete in 10s
-          knock port
+          Process.kill("SIGINT", io.pid) rescue Errno::ESRCH
         end
 
         yield io
       ensure
-        hiredis.disconnect if hiredis.connected?
+        # Abort timeout
+        timeout.kill
 
-        # Connect to make sure netcat exits
-        knock port
+        # Netcat waits forever if no-one connected, so kill it.
+        Process.kill("SIGINT", io.pid) rescue Errno::ESRCH
       end
     end
   end
