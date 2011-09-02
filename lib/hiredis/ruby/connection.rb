@@ -171,6 +171,8 @@ module Hiredis
 
       end
 
+      attr_reader :sock
+
       def initialize
         @sock = nil
         @timeout = nil

@@ -8,6 +8,10 @@ module ConnectionTests
 
   DEFAULT_PORT = 6380
 
+  def sockopt(sock, opt, unpack = "i")
+    sock.getsockopt(Socket::SOL_SOCKET, opt).unpack("i").first
+  end
+
   def knock(port)
     sock = TCPSocket.new("localhost", port)
     sock.close
@@ -210,8 +214,7 @@ module ConnectionTests
       hiredis.connect("localhost", 6380)
 
       # Find out send buffer size
-      sock = Socket.for_fd(hiredis.fileno)
-      sndbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).unpack("i").first
+      sndbuf = sockopt(hiredis.sock, Socket::SO_SNDBUF)
 
       # Make request that saturates the send buffer
       hiredis.write(["x" * sndbuf])
@@ -234,13 +237,9 @@ module ConnectionTests
   #     hiredis.connect("localhost", 6380)
   #     hiredis.timeout = 100_000
 
-  #     # Find out send buffer size
-  #     sock = Socket.for_fd(hiredis.fileno)
-  #     sndbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).unpack("i").first
-
-  #     # Find out receive buffer size
-  #     sock = Socket.for_fd(hiredis.fileno)
-  #     rcvbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_RCVBUF).unpack("i").first
+  #     # Find out buffer sizes
+  #     sndbuf = sockopt(hiredis.sock, Socket::SO_SNDBUF)
+  #     rcvbuf = sockopt(hiredis.sock, Socket::SO_RCVBUF)
 
   #     # Make request that fills both the remote receive buffer and the local
   #     # send buffer. This assumes that the size of the receive buffer on the
@@ -258,13 +257,9 @@ module ConnectionTests
       hiredis.connect("localhost", 6380)
       hiredis.timeout = 100_000
 
-      # Find out send buffer size
-      sock = Socket.for_fd(hiredis.fileno)
-      sndbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).unpack("i").first
-
-      # Find out receive buffer size
-      sock = Socket.for_fd(hiredis.fileno)
-      rcvbuf = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_RCVBUF).unpack("i").first
+      # Find out buffer sizes
+      sndbuf = sockopt(hiredis.sock, Socket::SO_SNDBUF)
+      rcvbuf = sockopt(hiredis.sock, Socket::SO_RCVBUF)
 
       # This thread starts reading the server buffer after 50ms. This will
       # cause the local write to first return EAGAIN, wait for the socket to
