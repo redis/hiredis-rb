@@ -292,6 +292,7 @@ if defined?(Hiredis::Ruby::Connection)
 
     def setup
       @hiredis = Hiredis::Ruby::Connection.new
+      @hiredis.timeout = 250_000
     end
   end
 end
@@ -302,6 +303,7 @@ if defined?(Hiredis::Ext::Connection)
 
     def setup
       @hiredis = Hiredis::Ext::Connection.new
+      @hiredis.timeout = 250_000
     end
   end
 end
