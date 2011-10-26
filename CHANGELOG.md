@@ -1,3 +1,7 @@
+### 0.4.1
+
+* Block indefinitely when timeout is set to zero.
+
 ### 0.4.0
 
 * Refactor both the pure Ruby and the native connection class to use

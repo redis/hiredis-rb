@@ -119,6 +119,20 @@ module ConnectionTests
     assert 210_000 > (Time.now - t)
   end
 
+  def test_connect_tcp_without_timeout
+    hiredis.timeout = 0
+
+    finished = false
+    thread = Thread.new do
+      hiredis.connect("1.1.1.1", 59876)
+      finished = true
+    end
+
+    sleep(0.5) # double of default timeout
+    assert !finished
+    thread.kill
+  end
+
   def test_read_when_disconnected
     assert_raise RuntimeError, "not connected" do
       hiredis.read
@@ -169,6 +183,23 @@ module ConnectionTests
       assert_raise Errno::EAGAIN do
         hiredis.read
       end
+    end
+  end
+
+  def test_read_without_timeout
+    listen do |_|
+      hiredis.connect("localhost", DEFAULT_PORT)
+      hiredis.timeout = 0
+
+      finished = false
+      thread = Thread.new do
+        hiredis.read
+        finished = true
+      end
+
+      sleep(0.5) # double of default timeout
+      assert !finished
+      thread.kill
     end
   end
 

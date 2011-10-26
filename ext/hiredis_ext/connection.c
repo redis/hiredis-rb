@@ -410,16 +410,22 @@ static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
 
     Data_Get_Struct(self,redisParentContext,pc);
 
-    /* Sanity check */
-    if (NUM2INT(usecs) <= 0) {
-        rb_raise(rb_eArgError, "timeout should be positive");
+    if (NUM2INT(usecs) < 0) {
+        rb_raise(rb_eArgError, "timeout cannot be negative");
+    } else {
+        parent_context_try_free_timeout(pc);
+
+        /* A timeout equal to zero means not to time out. This translates to a
+         * NULL timeout for select(2). Only allocate and populate the timeout
+         * when it is a positive integer. */
+        if (NUM2INT(usecs) > 0) {
+            ptr = malloc(sizeof(*ptr));
+            ptr->tv_sec = NUM2INT(usecs) / 1000000;
+            ptr->tv_usec = NUM2INT(usecs) % 1000000;
+            pc->timeout = ptr;
+        }
     }
 
-    parent_context_try_free_timeout(pc);
-    ptr = malloc(sizeof(*ptr));
-    ptr->tv_sec = NUM2INT(usecs) / 1000000;
-    ptr->tv_usec = NUM2INT(usecs) % 1000000;
-    pc->timeout = ptr;
     return Qnil;
 }
 

@@ -221,9 +221,13 @@ module Hiredis
       end
 
       def timeout=(usecs)
-        raise ArgumentError.new("timeout should be positive") if usecs <= 0
+        raise ArgumentError.new("timeout cannot be negative") if usecs < 0
 
-        @timeout = usecs / 1_000_000.0
+        if usecs == 0
+          @timeout = nil
+        else
+          @timeout = usecs / 1_000_000.0
+        end
 
         nil
       end
