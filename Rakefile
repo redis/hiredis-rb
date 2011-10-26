@@ -1,5 +1,7 @@
-require 'rake'
-require 'rake/testtask'
+require "bundler"
+Bundler::GemHelper.install_tasks
+
+require "rake/testtask"
 require "rake/extensiontask"
 
 unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
