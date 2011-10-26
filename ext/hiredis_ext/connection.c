@@ -56,7 +56,7 @@ static void parent_context_raise(redisParentContext *pc) {
         rb_sys_fail(0);
         break;
     case REDIS_ERR_EOF:
-        /* Raise our own EOF error */
+        /* Raise native Ruby EOFError */
         rb_raise(rb_eEOFError,"%s",errstr);
         break;
     default:

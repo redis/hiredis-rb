@@ -158,7 +158,7 @@ module ConnectionTests
       assert_equal "OK", hiredis.read
 
       # Next read should raise
-      assert_raise EOFError do
+      assert_raise Errno::ECONNRESET do
         hiredis.read
       end
     end

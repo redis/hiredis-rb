@@ -13,6 +13,14 @@ module Hiredis
         @sock = nil
       end
 
+      alias :_read :read
+
+      def read
+        _read
+      rescue ::EOFError
+        raise Errno::ECONNRESET
+      end
+
       def sock
         @sock ||= Socket.for_fd(fileno)
       end
