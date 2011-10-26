@@ -28,21 +28,34 @@ if $ruby.dbsize > 0
   exit 1
 end
 
+def without_gc
+  GC.start
+  GC.disable
+  yield
+ensure
+  GC.enable
+end
+
 def pipeline(b,num,size,title,cmd)
   commands = size.times.map { cmd }
-  GC.start
 
-  b.report("redis-rb: %2dx #{title} pipeline, #{num} times" % size) {
-    num.times {
-      $ruby.client.call_pipelined(commands)
+  x = without_gc {
+    b.report("redis-rb: %2dx #{title} pipeline, #{num} times" % size) {
+      num.times {
+        $ruby.client.call_pipelined(commands)
+      }
     }
   }
 
-  b.report(" hiredis: %2dx #{title} pipeline, #{num} times" % size) {
-    num.times {
-      $hiredis.client.call_pipelined(commands)
+  y = without_gc {
+    b.report(" hiredis: %2dx #{title} pipeline, #{num} times" % size) {
+      num.times {
+        $hiredis.client.call_pipelined(commands)
+      }
     }
   }
+
+  puts "%.1fx" % [1 / (y.real / x.real)]
 end
 
 Benchmark.bm(50) do |b|
