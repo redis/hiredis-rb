@@ -97,6 +97,12 @@ module ConnectionTests
     end
   end
 
+  def test_wrong_value_for_timeout
+    assert_raise ArgumentError do
+      hiredis.timeout = -10
+    end
+  end
+
   def test_connect_tcp_with_timeout
     hiredis.timeout = 200_000
 
@@ -136,12 +142,6 @@ module ConnectionTests
   def test_read_when_disconnected
     assert_raise RuntimeError, "not connected" do
       hiredis.read
-    end
-  end
-
-  def test_wrong_value_for_timeout
-    assert_raise ArgumentError do
-      hiredis.timeout = -10
     end
   end
 
