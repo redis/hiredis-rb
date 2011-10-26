@@ -1,9 +1,15 @@
 ### 0.4.0
 
-* Refactor pure Ruby connection class to use non-blocking I/O. This makes the
-  code more portable (w.r.t. timeouts on connect/read/write), and more friendly
-  towards threads running in the same interpreter (they can now be properly
-  scheduled while hiredis blocks on select(2)).
+* Refactor both the pure Ruby and the native connection class to use
+  non-blocking I/O. The code now uses `IO.select` for the pure Ruby connection
+  class, and `rb_thread_select` for the native connection class, to detect if a
+  socket is readable/writable. This makes the code more portable (w.r.t.
+  timeouts on connect/read/write), and more friendly towards threads running in
+  the same interpreter (they can now be properly scheduled while hiredis blocks
+  on select(2)).
+
+* Add `#flush` method to connection class that flushes the write buffer to the
+  socket. This buffer was previously only flushed whenever `#read` was called.
 
 ### 0.3.2
 
