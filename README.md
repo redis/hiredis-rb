@@ -21,7 +21,7 @@ To use hiredis from redis-rb, it needs to be available in Ruby's load path.
 Using Bundler, this comes down to adding the following lines:
 
 ``` ruby
-gem "hiredis", "~> 0.3.0"
+gem "hiredis", "~> 0.4.0"
 gem "redis", ">= 2.2.0"
 ```
 
