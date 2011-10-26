@@ -26,17 +26,17 @@ unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
   Rake::Task[:clean].enhance(['hiredis:clean'])
 
   # Build from scratch
-  task :build => [:clean, :compile]
+  task :rebuild => [:clean, :compile]
 
 else
 
-  task :build do
+  task :rebuild do
     # no-op
   end
 
 end
 
-task :default => [:build, :test]
+task :default => [:rebuild, :test]
 
 desc "Run tests"
 Rake::TestTask.new(:test) do |t|
