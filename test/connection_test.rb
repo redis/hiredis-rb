@@ -310,6 +310,36 @@ module ConnectionTests
       end
     end
   end
+
+  def test_no_eagain_after_cumulative_wait_exceeds_timeout
+    listen do |server|
+      hiredis.connect("localhost", 6380)
+      hiredis.timeout = 10_000
+
+      begin
+        thread = Thread.new do
+          loop do
+            sleep(0.001)
+            server.write("+ok\r\n")
+          end
+        end
+
+        # The read timeout for this connection is 10 milliseconds.
+        # To compensate for the overhead of parsing the reply and the chance
+        # not having to wait because the reply is already present in the OS
+        # buffers, continue until we have waited at least 5x the timeout.
+        waited = 0
+        while waited < 50_000
+          t1 = Time.now
+          hiredis.read
+          t2 = Time.now
+          waited += (t2 - t1) * 1_000_000
+        end
+      ensure
+        thread.kill
+      end
+    end
+  end
 end
 
 if defined?(Hiredis::Ruby::Connection)

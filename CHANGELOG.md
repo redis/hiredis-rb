@@ -1,4 +1,10 @@
-### 0.4.2
+### 0.4.3
+
+* Fix bug that caused EAGAIN to be raised after the cumulative time spent
+  waiting for the socket to become readable/writable exceeded the
+  connection-wide timeout.
+
+### 0.4.2 (unreleased)
 
 * Use patched version of hiredis to support multi bulk depth of 2.
 

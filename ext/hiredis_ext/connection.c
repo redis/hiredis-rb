@@ -72,12 +72,20 @@ static VALUE connection_parent_context_alloc(VALUE klass) {
     return Data_Wrap_Struct(klass, parent_context_mark, parent_context_free, pc);
 }
 
-static int __wait_readable(int fd, struct timeval *timeout, int *isset) {
+static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
+    struct timeval to;
+    struct timeval *toptr = NULL;
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
 
-    if (rb_thread_select(fd + 1, &fds, NULL, NULL, timeout) < 0) {
+    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    if (timeout != NULL) {
+        memcpy(&to, timeout, sizeof(to));
+        toptr = &to;
+    }
+
+    if (rb_thread_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
         return -1;
     }
 
@@ -88,12 +96,20 @@ static int __wait_readable(int fd, struct timeval *timeout, int *isset) {
     return 0;
 }
 
-static int __wait_writable(int fd, struct timeval *timeout, int *isset) {
+static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
+    struct timeval to;
+    struct timeval *toptr = NULL;
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
 
-    if (rb_thread_select(fd + 1, NULL, &fds, NULL, timeout) < 0) {
+    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    if (timeout != NULL) {
+        memcpy(&to, timeout, sizeof(to));
+        toptr = &to;
+    }
+
+    if (rb_thread_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
         return -1;
     }
 
