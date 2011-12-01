@@ -1,3 +1,7 @@
+### 0.4.2
+
+* Use patched version of hiredis to support multi bulk depth of 2.
+
 ### 0.4.1
 
 * Block indefinitely when timeout is set to zero.
