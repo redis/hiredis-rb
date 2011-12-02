@@ -70,6 +70,11 @@ module ReaderTests
     @reader.feed("*2\r\n*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n$1\r\n!\r\n")
     assert_equal [["hello", "world"], "!"], @reader.gets
   end
+
+  def test_nested_multi_bulk_redux
+    @reader.feed("*2\r\n*2\r\n*1\r\n$5\r\nhello\r\n$5\r\nworld\r\n$1\r\n!\r\n")
+    assert_equal [[["hello"], "world"], "!"], @reader.gets
+  end
 end
 
 if defined?(Hiredis::Ruby::Reader)

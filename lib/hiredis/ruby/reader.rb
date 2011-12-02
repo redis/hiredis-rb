@@ -32,14 +32,17 @@ module Hiredis
         method_index[?*] = :process_multi_bulk_reply
         METHOD_INDEX = method_index.freeze
 
-        attr_accessor :parent, :child
+        attr_reader :parent
+        attr_reader :depth
         attr_accessor :multi_bulk
 
         def initialize(buffer, parent = nil, depth = 0)
-          @buffer, @parent = buffer, parent
+          @buffer, @parent, @depth = buffer, parent, depth
+        end
 
-          # Require 3 nested tasks
-          @child = Task.new(@buffer, self, depth + 1) if depth < 2
+        # Note: task depth is not checked.
+        def child
+          @child ||= Task.new(@buffer, self, depth + 1)
         end
 
         def root
