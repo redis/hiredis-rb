@@ -3,3 +3,5 @@ tmp/
 ext/**/*.log
 ext/**/Makefile
 ext/**/*.conf
+*.so
+*.bundle
