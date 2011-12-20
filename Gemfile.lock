@@ -1,12 +1,12 @@
 PATH
   remote: .
   specs:
-    hiredis (0.4.2.pre)
+    hiredis (0.4.4)
 
 GEM
   remote: http://rubygems.org/
   specs:
-    rake (0.9.2)
+    rake (0.9.2.2)
     rake-compiler (0.7.9)
       rake
 
