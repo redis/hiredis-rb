@@ -1,3 +1,8 @@
+### 0.4.4
+
+* Make tests explicitly require files from the local tree to prevent files from
+  the search path to be accidentally required.
+
 ### 0.4.3
 
 * Fix bug that caused EAGAIN to be raised after the cumulative time spent

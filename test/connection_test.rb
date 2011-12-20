@@ -1,6 +1,7 @@
 require 'test/unit'
-require 'hiredis/ext/connection' unless RUBY_PLATFORM =~ /java/
-require 'hiredis/ruby/connection'
+
+require File.expand_path('../../lib/hiredis/ext/connection', __FILE__) unless RUBY_PLATFORM =~ /java/
+require File.expand_path('../../lib/hiredis/ruby/connection', __FILE__)
 
 module ConnectionTests
 
