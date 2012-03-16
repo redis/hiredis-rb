@@ -73,7 +73,7 @@ to implement a subscriber (for Redis Pub/Sub).
 
 When the connection was closed by the server, an error of the type
 `Hiredis::Connection::EOFError` will be raised. For all I/O related errors,
-the Ruby built-in `Errno::*` errors will be raised. All other errors
+the Ruby built-in `Errno::XYZ` errors will be raised. All other errors
 (such as a protocol error) result in a `RuntimeError`.
 
 You can skip loading everything and just load `Hiredis::Connection` by
