@@ -164,7 +164,7 @@ module Hiredis
 
         private
 
-        if defined?(Encoding)
+        if "".respond_to?(:force_encoding)
 
           def force_encoding(str)
             str.force_encoding(Encoding.default_external)
