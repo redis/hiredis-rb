@@ -5,6 +5,27 @@ require 'test/unit'
 require File.expand_path('../../lib/hiredis/ext/reader', __FILE__) unless RUBY_PLATFORM =~ /java/
 require File.expand_path('../../lib/hiredis/ruby/reader', __FILE__)
 
+unless defined?(Encoding)
+
+  # Stub encoding APIs if not available
+
+  class String
+    def force_encoding(encoding)
+      self
+    end
+  end
+
+  class Encoding
+    class << self
+      attr_accessor :default_external
+
+      def find(encoding)
+        nil
+      end
+    end
+  end
+end
+
 module ReaderTests
 
   def silent
