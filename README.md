@@ -1,5 +1,7 @@
 # hiredis-rb
 
+[![Build Status](https://secure.travis-ci.org/pietern/hiredis-rb.png?branch=master)](http://travis-ci.org/pietern/hiredis-rb)
+
 Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis). Both
 the synchronous connection API and a separate protocol reader are supported.
 It is primarily intended to speed up parsing multi bulk replies.
@@ -71,7 +73,7 @@ to implement a subscriber (for Redis Pub/Sub).
 
 When the connection was closed by the server, an error of the type
 `Hiredis::Connection::EOFError` will be raised. For all I/O related errors,
-the Ruby built-in `Errno::*` errors will be raised. All other errors
+the Ruby built-in `Errno::XYZ` errors will be raised. All other errors
 (such as a protocol error) result in a `RuntimeError`.
 
 You can skip loading everything and just load `Hiredis::Connection` by

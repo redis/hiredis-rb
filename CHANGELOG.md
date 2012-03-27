@@ -1,3 +1,8 @@
+### 0.4.5
+
+* The protocol reader now forces all strings to be encoded using
+  `Encoding.default_external`.
+
 ### 0.4.4
 
 * Make tests explicitly require files from the local tree to prevent files from

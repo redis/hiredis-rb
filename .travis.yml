@@ -1,6 +1,15 @@
+language: ruby
+
 rvm:
   - 1.8.7
   - 1.9.2
-  - rbx-2.0
+  - 1.9.3
+  - jruby-18mode
+  - jruby-19mode
   - ree
-  - jruby
+
+notifications:
+  irc:
+  - irc.freenode.net#redis-rb
+  email:
+  - pcnoordhuis@gmail.com

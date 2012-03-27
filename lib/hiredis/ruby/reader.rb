@@ -150,7 +150,7 @@ module Hiredis
           return false if @length < stop
 
           @pos = stop
-          @buffer[start, bytes]
+          force_encoding @buffer[start, bytes]
         end
 
         def read_line
@@ -159,7 +159,23 @@ module Hiredis
           return false unless stop
 
           @pos = stop + 2 # include CRLF
-          @buffer[start, stop - start]
+          force_encoding @buffer[start, stop - start]
+        end
+
+        private
+
+        if "".respond_to?(:force_encoding)
+
+          def force_encoding(str)
+            str.force_encoding(Encoding.default_external)
+          end
+
+        else
+
+          def force_encoding(str)
+            str
+          end
+
         end
       end
     end

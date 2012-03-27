@@ -1,9 +1,54 @@
+# encoding: UTF-8
+
 require 'test/unit'
 
 require File.expand_path('../../lib/hiredis/ext/reader', __FILE__) unless RUBY_PLATFORM =~ /java/
 require File.expand_path('../../lib/hiredis/ruby/reader', __FILE__)
 
+unless defined?(Encoding)
+
+  # Stub encoding APIs if not available
+
+  class String
+    def force_encoding(encoding)
+      self
+    end
+  end
+
+  class Encoding
+    class << self
+      attr_accessor :default_external
+
+      def find(encoding)
+        nil
+      end
+    end
+  end
+end
+
 module ReaderTests
+
+  def silent
+    verbose, $VERBOSE = $VERBOSE, false
+
+    begin
+      yield
+    ensure
+      $VERBOSE = verbose
+    end
+  end
+
+  def with_external_encoding(encoding)
+    original_encoding = Encoding.default_external
+
+    begin
+      silent { Encoding.default_external = Encoding.find(encoding) }
+      yield
+    ensure
+      silent { Encoding.default_external = original_encoding }
+    end
+  end
+
   def test_false_on_empty_buffer
     assert_equal false, @reader.gets
   end
@@ -50,6 +95,32 @@ module ReaderTests
   def test_bulk_string
     @reader.feed("$5\r\nhello\r\n")
     assert_equal "hello", @reader.gets
+  end
+
+  def test_bulk_string_encoding
+    string = "שלום"
+    protocol = "$%d\r\n%s\r\n" % [string.bytesize, string]
+    protocol.force_encoding "ASCII-8BIT"
+
+    @reader.feed(protocol)
+
+    with_external_encoding("UTF-8") do
+      assert_equal string, @reader.gets
+    end
+  end
+
+  def test_bulk_string_encoding_chunked
+    string = "שלום"
+    protocol = "$%d\r\n%s\r\n" % [string.bytesize, string]
+    protocol.force_encoding "ASCII-8BIT"
+
+    protocol.each_char do |c|
+      @reader.feed(c)
+    end
+
+    with_external_encoding("UTF-8") do
+      assert_equal string, @reader.gets
+    end
   end
 
   def test_null_multi_bulk
