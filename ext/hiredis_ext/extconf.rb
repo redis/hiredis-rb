@@ -9,7 +9,12 @@ unless File.directory?(hiredis_dir)
 end
 
 # Make sure hiredis is built...
-system("cd #{hiredis_dir} && make static")
+gnu_make = system("make --version 2>/dev/null | grep 'GNU Make' > /dev/null")
+if gnu_make
+  system("cd #{hiredis_dir} && make static")
+else
+  system("cd #{hiredis_dir} && gmake static")
+end
 
 # Statically link to hiredis (mkmf can't do this for us)
 $CFLAGS << " -I#{hiredis_dir}"

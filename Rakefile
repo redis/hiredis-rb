@@ -18,7 +18,12 @@ unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
       if !File.directory?("vendor/hiredis/.git")
         system("git submodule update --init")
       end
-      system("cd vendor/hiredis && make clean")
+      gnu_make = system("make --version 2>/dev/null | grep 'GNU Make' > /dev/null")
+      if gnu_make
+        system("cd vendor/hiredis && make clean")
+      else
+        system("cd vendor/hiredis && gmake clean")
+      end
     end
   end
 
