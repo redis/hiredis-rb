@@ -67,6 +67,12 @@ static void parent_context_raise(redisParentContext *pc) {
 
 static VALUE connection_parent_context_alloc(VALUE klass) {
     redisParentContext *pc = malloc(sizeof(*pc));
+
+    if (!pc) {
+        rb_sys_fail(0);
+        return Qnil;
+    }
+
     pc->context = NULL;
     pc->timeout = NULL;
     return Data_Wrap_Struct(klass, parent_context_mark, parent_context_free, pc);
@@ -283,6 +289,12 @@ static VALUE connection_write(VALUE self, VALUE command) {
     args = RARRAY_PTR(command);
     argv = malloc(argc*sizeof(char*));
     alen = malloc(argc*sizeof(size_t));
+
+    if (!argv || !alen) {
+        rb_sys_fail(0);
+        goto out;
+    }
+
     for (i = 0; i < argc; i++) {
         /* Replace arguments in the arguments array to prevent their string
          * equivalents to be garbage collected before this loop is done. */
@@ -291,6 +303,8 @@ static VALUE connection_write(VALUE self, VALUE command) {
         alen[i] = RSTRING_LEN(args[i]);
     }
     redisAppendCommandArgv(pc->context,argc,(const char**)argv,alen);
+
+out:
     free(argv);
     free(alen);
     return Qnil;
@@ -436,9 +450,14 @@ static VALUE connection_set_timeout(VALUE self, VALUE usecs) {
          * when it is a positive integer. */
         if (NUM2INT(usecs) > 0) {
             ptr = malloc(sizeof(*ptr));
-            ptr->tv_sec = NUM2INT(usecs) / 1000000;
-            ptr->tv_usec = NUM2INT(usecs) % 1000000;
-            pc->timeout = ptr;
+
+            if (!ptr) {
+                rb_sys_fail(0);
+            } else {
+                ptr->tv_sec = NUM2INT(usecs) / 1000000;
+                ptr->tv_usec = NUM2INT(usecs) % 1000000;
+                pc->timeout = ptr;
+            }
         }
     }
 
