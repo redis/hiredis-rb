@@ -265,7 +265,6 @@ static VALUE connection_disconnect(VALUE self) {
 static VALUE connection_write(VALUE self, VALUE command) {
     redisParentContext *pc;
     int argc;
-    VALUE *args;
     char **argv = NULL;
     size_t *alen = NULL;
     int i;
@@ -280,15 +279,15 @@ static VALUE connection_write(VALUE self, VALUE command) {
         rb_raise(rb_eRuntimeError,"%s","not connected");
 
     argc = (int)RARRAY_LEN(command);
-    args = RARRAY_PTR(command);
     argv = malloc(argc*sizeof(char*));
     alen = malloc(argc*sizeof(size_t));
     for (i = 0; i < argc; i++) {
         /* Replace arguments in the arguments array to prevent their string
          * equivalents to be garbage collected before this loop is done. */
-        args[i] = rb_obj_as_string(args[i]);
-        argv[i] = RSTRING_PTR(args[i]);
-        alen[i] = RSTRING_LEN(args[i]);
+        VALUE entry = rb_obj_as_string(rb_ary_entry(command, i));
+        rb_ary_store(command, i, entry);
+        argv[i] = RSTRING_PTR(entry);
+        alen[i] = RSTRING_LEN(entry);
     }
     redisAppendCommandArgv(pc->context,argc,(const char**)argv,alen);
     free(argv);
@@ -459,6 +458,7 @@ static VALUE connection_fileno(VALUE self) {
 VALUE klass_connection;
 void InitConnection(VALUE mod) {
     klass_connection = rb_define_class_under(mod, "Connection", rb_cObject);
+    rb_global_variable(&klass_connection);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
     rb_define_method(klass_connection, "connect", connection_connect, -1);
     rb_define_method(klass_connection, "connect_unix", connection_connect_unix, -1);
