@@ -79,13 +79,13 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
 
-    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    /* rb_fd_thread_select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
     }
 
-    if (rb_thread_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
+    if (rb_fd_thread_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
         return -1;
     }
 
@@ -103,13 +103,13 @@ static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
 
-    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    /* rb_fd_thread_select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
     }
 
-    if (rb_thread_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
+    if (rb_fd_thread_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
         return -1;
     }
 
