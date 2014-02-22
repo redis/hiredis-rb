@@ -12,6 +12,9 @@ end
 # Make sure hiredis is built...
 system("cd #{hiredis_dir} && #{GMAKE} static")
 
+# Fix bundle update by removing this file.
+system("rm .RUBYARCHDIR.time")
+
 # Statically link to hiredis (mkmf can't do this for us)
 $CFLAGS << " -I#{hiredis_dir}"
 $LDFLAGS << " #{hiredis_dir}/libhiredis.a"
