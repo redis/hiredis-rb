@@ -1,6 +1,6 @@
 # hiredis-rb
 
-[![Build Status](https://secure.travis-ci.org/pietern/hiredis-rb.png?branch=master)](http://travis-ci.org/pietern/hiredis-rb)
+[![Build Status](https://travis-ci.org/redis/hiredis-rb.svg?branch=master)](https://travis-ci.org/redis/hiredis-rb)
 
 Ruby extension that wraps [hiredis](http://github.com/antirez/hiredis). Both
 the synchronous connection API and a separate protocol reader are supported.
