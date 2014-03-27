@@ -19,4 +19,6 @@ system("cd #{hiredis_dir} && #{make_program} static")
 # Statically link to hiredis (mkmf can't do this for us)
 $CFLAGS << " -I#{hiredis_dir}"
 $LDFLAGS << " #{hiredis_dir}/libhiredis.a"
+
+have_func("rb_thread_fd_select")
 create_makefile('hiredis/ext/hiredis_ext')

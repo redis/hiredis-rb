@@ -72,24 +72,58 @@ static VALUE connection_parent_context_alloc(VALUE klass) {
     return Data_Wrap_Struct(klass, parent_context_mark, parent_context_free, pc);
 }
 
+
+/*
+ * The rb_fdset_t API was introduced in Ruby 1.9.1. The rb_fd_thread_select
+ * function was introduced in a later version. Therefore, there are one more
+ * versions where we cannot simply test HAVE_RB_FD_INIT and be done, we have to
+ * explicitly test for HAVE_RB_THREAD_FD_SELECT (also see extconf.rb).
+ */
+#ifdef HAVE_RB_THREAD_FD_SELECT
+typedef rb_fdset_t _fdset_t;
+#define _fd_zero(f)                       rb_fd_zero(f)
+#define _fd_set(n, f)                     rb_fd_set(n, f)
+#define _fd_clr(n, f)                     rb_fd_clr(n, f)
+#define _fd_isset(n, f)                   rb_fd_isset(n, f)
+#define _fd_copy(d, s, n)                 rb_fd_copy(d, s, n)
+#define _fd_ptr(f)                        rb_fd_ptr(f)
+#define _fd_init(f)                       rb_fd_init(f)
+#define _fd_term(f)                       rb_fd_term(f)
+#define _fd_max(f)                        rb_fd_max(f)
+#define _thread_fd_select(n, r, w, e, t)  rb_thread_fd_select(n, r, w, e, t)
+#else
+typedef fd_set _fdset_t;
+#define _fd_zero(f)                       FD_ZERO(f)
+#define _fd_set(n, f)                     FD_SET(n, f)
+#define _fd_clr(n, f)                     FD_CLR(n, f)
+#define _fd_isset(n, f)                   FD_ISSET(n, f)
+#define _fd_copy(d, s, n)                 (*(d) = *(s))
+#define _fd_ptr(f)                        (f)
+#define _fd_init(f)                       FD_ZERO(f)
+#define _fd_term(f)                       (void)(f)
+#define _fd_max(f)                        FD_SETSIZE
+#define _thread_fd_select(n, r, w, e, t)  rb_thread_select(n, r, w, e, t)
+#endif
+
 static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
     struct timeval to;
     struct timeval *toptr = NULL;
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
 
-    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    _fdset_t fds;
+    _fd_init(&fds);
+    _fd_set(fd, &fds);
+
+    /* rb_fd_select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
     }
 
-    if (rb_thread_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
+    if (_thread_fd_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
         return -1;
     }
 
-    if (FD_ISSET(fd, &fds) && isset) {
+    if (_fd_isset(fd, &fds) && isset) {
         *isset = 1;
     }
 
@@ -99,21 +133,22 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
 static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
     struct timeval to;
     struct timeval *toptr = NULL;
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
 
-    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    _fdset_t fds;
+    _fd_init(&fds);
+    _fd_set(fd, &fds);
+
+    /* rb_fd_select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
     }
 
-    if (rb_thread_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
+    if (_thread_fd_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
         return -1;
     }
 
-    if (FD_ISSET(fd, &fds) && isset) {
+    if (_fd_isset(fd, &fds) && isset) {
         *isset = 1;
     }
 
