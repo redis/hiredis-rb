@@ -2,7 +2,7 @@ require 'mkmf'
 
 RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
 
-hiredis_dir = File.expand_path(File.join(File.dirname(__FILE__), %w{.. .. vendor hiredis}))
+hiredis_dir = File.join(File.dirname(__FILE__), %w{.. .. vendor hiredis})
 unless File.directory?(hiredis_dir)
   STDERR.puts "vendor/hiredis missing, please checkout its submodule..."
   exit 1
@@ -15,8 +15,10 @@ unless make_program then
 end
 
 # Make sure hiredis is built...
-success = system("cd #{hiredis_dir} && #{make_program} static")
-raise "Building hiredis failed" if !success
+Dir.chdir(hiredis_dir) do
+  success = system("#{make_program} static")
+  raise "Building hiredis failed" if !success
+end
 
 # Statically link to hiredis (mkmf can't do this for us)
 $CFLAGS << " -I#{hiredis_dir}"
