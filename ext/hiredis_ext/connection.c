@@ -113,7 +113,7 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
     _fd_init(&fds);
     _fd_set(fd, &fds);
 
-    /* rb_fd_select modifies the passed timeval, so we pass a copy */
+    /* rb_thread_{fd_,}select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
@@ -138,7 +138,7 @@ static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
     _fd_init(&fds);
     _fd_set(fd, &fds);
 
-    /* rb_fd_select modifies the passed timeval, so we pass a copy */
+    /* rb_thread_{fd_,}select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
