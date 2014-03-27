@@ -97,6 +97,7 @@ static VALUE reader_gets(VALUE klass) {
 VALUE klass_reader;
 void InitReader(VALUE mod) {
     klass_reader = rb_define_class_under(mod, "Reader", rb_cObject);
+    rb_global_variable(&klass_reader);
     rb_define_alloc_func(klass_reader, reader_allocate);
     rb_define_method(klass_reader, "feed", reader_feed, 1);
     rb_define_method(klass_reader, "gets", reader_gets, 0);
@@ -108,6 +109,7 @@ void InitReader(VALUE mod) {
         enc_klass = rb_const_get(rb_cObject, rb_intern("Encoding"));
         enc_default_external = rb_intern("default_external");
         str_force_encoding = rb_intern("force_encoding");
+        rb_global_variable(&enc_klass);
     } else {
         enc_default_external = 0;
     }
