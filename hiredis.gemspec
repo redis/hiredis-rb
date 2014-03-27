@@ -1,7 +1,7 @@
 require File.expand_path("../lib/hiredis/version", __FILE__)
 
 Gem::Specification.new do |s|
-  s.name = "hiredis"
+  s.name = "preplay_hiredis"
   s.version = Hiredis::VERSION
   s.homepage = "http://github.com/pietern/hiredis-rb"
   s.authors = ["Pieter Noordhuis"]
