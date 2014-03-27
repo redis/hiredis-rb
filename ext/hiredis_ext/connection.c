@@ -75,21 +75,21 @@ static VALUE connection_parent_context_alloc(VALUE klass) {
 static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
     struct timeval to;
     struct timeval *toptr = NULL;
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    rb_fdset_t fds;
+    rb_fd_init(&fds);
+    rb_fd_set(fd, &fds);
 
-    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    /* rb_thread_fd_select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
     }
 
-    if (rb_thread_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
+    if (rb_thread_fd_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
         return -1;
     }
 
-    if (FD_ISSET(fd, &fds) && isset) {
+    if (rb_fd_isset(fd,&fds) && isset) {
         *isset = 1;
     }
 
@@ -99,21 +99,21 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
 static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
     struct timeval to;
     struct timeval *toptr = NULL;
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    rb_fdset_t fds;
+    rb_fd_init(&fds);
+    rb_fd_set(fd, &fds);
 
-    /* rb_thread_select modifies the passed timeval, so we pass a copy */
+    /* rb_thread_fd_select modifies the passed timeval, so we pass a copy */
     if (timeout != NULL) {
         memcpy(&to, timeout, sizeof(to));
         toptr = &to;
     }
 
-    if (rb_thread_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
+    if (rb_thread_fd_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
         return -1;
     }
 
-    if (FD_ISSET(fd, &fds) && isset) {
+    if (rb_fd_isset(fd, &fds) && isset) {
         *isset = 1;
     }
 
