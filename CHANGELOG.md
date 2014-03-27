@@ -1,3 +1,14 @@
+### 0.5.0
+
+* Update calls to deprecated Ruby functions with their non-deprecated
+  equivalents (see #20 and f85e8c65).
+
+* Update hiredis to 0.11.0.
+
+* Reduced number of objects to garbage collect on Rubinius (see #13).
+
+* Configurable `make` command (see #5).
+
 ### 0.4.5
 
 * The protocol reader now forces all strings to be encoded using
