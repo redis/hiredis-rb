@@ -8,8 +8,13 @@ unless File.directory?(hiredis_dir)
   exit 1
 end
 
+RbConfig::CONFIG['configure_args'] =~ /with-make-prog\=(\w+)/
+make_program = $1 || ENV['make']
+unless make_program then
+  make_program = (/mswin/ =~ RUBY_PLATFORM) ? 'nmake' : 'make'
+end
 # Make sure hiredis is built...
-system("cd #{hiredis_dir} && make static")
+system("cd #{hiredis_dir} && #{make_program} static")
 
 # Statically link to hiredis (mkmf can't do this for us)
 $CFLAGS << " -I#{hiredis_dir}"

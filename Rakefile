@@ -1,6 +1,7 @@
 require "bundler"
 Bundler::GemHelper.install_tasks
 
+require "rbconfig"
 require "rake/testtask"
 require "rake/extensiontask"
 
@@ -18,7 +19,12 @@ unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
       if !File.directory?("vendor/hiredis/.git")
         system("git submodule update --init")
       end
-      system("cd vendor/hiredis && make clean")
+      RbConfig::CONFIG['configure_args'] =~ /with-make-prog\=(\w+)/
+      make_program = $1 || ENV['make']
+      unless make_program then
+        make_program = (/mswin/ =~ RUBY_PLATFORM) ? 'nmake' : 'make'
+      end
+      system("cd vendor/hiredis && #{make_program} clean")
     end
   end
 
