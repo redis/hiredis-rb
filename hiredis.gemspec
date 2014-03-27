@@ -3,10 +3,10 @@ require File.expand_path("../lib/hiredis/version", __FILE__)
 Gem::Specification.new do |s|
   s.name = "hiredis"
   s.version = Hiredis::VERSION
-  s.homepage = "http://github.com/pietern/hiredis-rb"
+  s.homepage = "http://github.com/redis/hiredis-rb"
   s.authors = ["Pieter Noordhuis"]
   s.email = ["pcnoordhuis@gmail.com"]
-  s.summary = "Ruby extension that wraps Hiredis (blocking connection and reply parsing)"
+  s.summary = "Ruby wrapper for hiredis (protocol serialization/deserialization and blocking I/O)"
   s.description = s.summary
 
   s.require_path = "lib"
