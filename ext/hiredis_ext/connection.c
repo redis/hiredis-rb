@@ -159,6 +159,9 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c, VALUE arg_t
     redisParentContext *pc;
     struct timeval tv;
     struct timeval *timeout = NULL;
+    int writable = 0;
+    int optval = 0;
+    socklen_t optlen = sizeof(optval);
 
     Data_Get_Struct(self,redisParentContext,pc);
 
@@ -193,7 +196,6 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c, VALUE arg_t
     }
 
     /* Wait for socket to become writable */
-    int writable = 0;
     if (__wait_writable(c->fd, timeout, &writable) < 0) {
         goto sys_fail;
     }
@@ -204,8 +206,6 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c, VALUE arg_t
     }
 
     /* Check for socket error */
-    int optval = 0;
-    socklen_t optlen = sizeof(optval);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0) {
         goto sys_fail;
     }
@@ -226,7 +226,6 @@ sys_fail:
 }
 
 static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
-    redisParentContext *pc;
     redisContext *c;
     VALUE arg_host = Qnil;
     VALUE arg_port = Qnil;
@@ -248,13 +247,11 @@ static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
         rb_raise(rb_eArgError, "invalid number of arguments");
     }
 
-    Data_Get_Struct(self,redisParentContext,pc);
     c = redisConnectNonBlock(StringValuePtr(arg_host), NUM2INT(arg_port));
     return connection_generic_connect(self,c,arg_timeout);
 }
 
 static VALUE connection_connect_unix(int argc, VALUE *argv, VALUE self) {
-    redisParentContext *pc;
     redisContext *c;
     VALUE arg_path = Qnil;
     VALUE arg_timeout = Qnil;
@@ -274,7 +271,6 @@ static VALUE connection_connect_unix(int argc, VALUE *argv, VALUE self) {
         rb_raise(rb_eArgError, "invalid number of arguments");
     }
 
-    Data_Get_Struct(self,redisParentContext,pc);
     c = redisConnectUnixNonBlock(StringValuePtr(arg_path));
     return connection_generic_connect(self,c,arg_timeout);
 }
