@@ -110,6 +110,9 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
     struct timeval *toptr = NULL;
 
     _fdset_t fds;
+
+    /* Be cautious: a call to rb_fd_init to initialize the rb_fdset_t structure
+     * must be paired with a call to rb_fd_term to free it. */
     _fd_init(&fds);
     _fd_set(fd, &fds);
 
@@ -120,6 +123,7 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
     }
 
     if (_thread_fd_select(fd + 1, &fds, NULL, NULL, toptr) < 0) {
+        _fd_term(&fds);
         return -1;
     }
 
@@ -127,6 +131,7 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
         *isset = 1;
     }
 
+    _fd_term(&fds);
     return 0;
 }
 
@@ -135,6 +140,9 @@ static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
     struct timeval *toptr = NULL;
 
     _fdset_t fds;
+
+    /* Be cautious: a call to rb_fd_init to initialize the rb_fdset_t structure
+     * must be paired with a call to rb_fd_term to free it. */
     _fd_init(&fds);
     _fd_set(fd, &fds);
 
@@ -145,6 +153,7 @@ static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
     }
 
     if (_thread_fd_select(fd + 1, NULL, &fds, NULL, toptr) < 0) {
+        _fd_term(&fds);
         return -1;
     }
 
@@ -152,6 +161,7 @@ static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
         *isset = 1;
     }
 
+    _fd_term(&fds);
     return 0;
 }
 
