@@ -1,3 +1,7 @@
+### 0.5.1
+
+* Fix memory leak for MRI >= 1.9.2 introduced in 0.5.0 (see #22).
+
 ### 0.5.0
 
 * Update calls to deprecated Ruby functions with their non-deprecated
