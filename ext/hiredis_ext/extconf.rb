@@ -10,8 +10,13 @@ end
 
 RbConfig::CONFIG['configure_args'] =~ /with-make-prog\=(\w+)/
 make_program = $1 || ENV['make']
-unless make_program then
-  make_program = (/mswin/ =~ RUBY_PLATFORM) ? 'nmake' : 'make'
+make_program ||= case RUBY_PLATFORM
+when /mswin/
+  'nmake'
+when /(bsd|solaris)/
+  'gmake'
+else
+  'make'
 end
 
 # Make sure hiredis is built...
