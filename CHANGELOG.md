@@ -1,3 +1,7 @@
+### 0.5.2
+
+* Fix build issue on FreeBSD (see #24).
+
 ### 0.5.1
 
 * Fix memory leak for MRI >= 1.9.2 introduced in 0.5.0 (see #22).
