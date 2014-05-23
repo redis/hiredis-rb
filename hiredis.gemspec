@@ -6,6 +6,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/redis/hiredis-rb"
   s.authors = ["Pieter Noordhuis"]
   s.email = ["pcnoordhuis@gmail.com"]
+  s.license = 'BSD-3-Clause'
   s.summary = "Ruby wrapper for hiredis (protocol serialization/deserialization and blocking I/O)"
   s.description = s.summary
 
