@@ -1,3 +1,7 @@
+### 0.5.3
+
+* Add license to gemspec (see #28).
+
 ### 0.5.2
 
 * Fix build issue on FreeBSD (see #24).
