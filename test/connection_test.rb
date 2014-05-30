@@ -14,7 +14,7 @@ module ConnectionTests
   end
 
   def listen(port = DEFAULT_PORT)
-    IO.popen("nc -l #{port}", "r+") do |io|
+    IO.popen("netcat -l -p #{port}", "r+") do |io|
       sleep 0.1 # Give nc a little time to start listening
 
       begin
