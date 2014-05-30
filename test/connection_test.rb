@@ -13,25 +13,70 @@ module ConnectionTests
     sock.getsockopt(Socket::SOL_SOCKET, opt).unpack("i").first
   end
 
-  def listen(port = DEFAULT_PORT)
-    IO.popen("nc -l #{port}", "r+") do |io|
-      sleep 0.1 # Give nc a little time to start listening
+  class Netcat
+    def initialize(port)
+      @listener = TCPServer.new(port)
+    end
 
+    def close
+      @listener.close
+    end
+
+    def run
       begin
-        timeout = Thread.new do
-          sleep 10 # Tests should complete in 10s
-          Process.kill("SIGINT", io.pid) rescue Errno::ESRCH
+        @sock = @listener.accept_nonblock
+      rescue Errno::EAGAIN
+        begin
+          IO.select([@listener])
+        rescue IOError
+          # Happens when listener gets closed
+          return
         end
-
-        yield io
-      ensure
-        # Abort timeout
-        timeout.kill
-
-        # Netcat waits forever if no-one connected, so kill it.
-        Process.kill("SIGINT", io.pid) rescue Errno::ESRCH
+        retry
       end
     end
+
+    def read(*args)
+      wait_for_sock
+      @sock.read(*args)
+    end
+
+    def write(*args)
+      wait_for_sock
+      @sock.write(*args)
+    end
+
+    def close_read(*args)
+      wait_for_sock
+      @sock.close_read(*args)
+    end
+
+    def close_write(*args)
+      wait_for_sock
+      @sock.close_write(*args)
+    end
+
+    private
+
+    def wait_for_sock
+      stop = Time.now + 1
+      Thread.pass while @sock == nil && Time.now < stop
+    end
+  end
+
+  def listen(port = DEFAULT_PORT)
+    nc = Netcat.new(port)
+    thread = Thread.new do
+      nc.run
+    end
+
+    begin
+      yield nc
+    ensure
+      nc.close
+    end
+
+    thread.join
   end
 
   def test_connect_wrong_host
