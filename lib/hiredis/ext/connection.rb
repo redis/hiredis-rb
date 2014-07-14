@@ -5,6 +5,14 @@ require "socket"
 module Hiredis
   module Ext
     class Connection
+      alias :_connect :connect
+
+      def connect(s, c, t)
+        _connect(s, c, t)
+      rescue Errno::EINVAL
+        raise Errno::ECONNREFUSED
+      end
+
       alias :_disconnect :disconnect
 
       def disconnect
