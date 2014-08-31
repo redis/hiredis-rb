@@ -80,7 +80,7 @@ You can skip loading everything and just load `Hiredis::Connection` by
 requiring `hiredis/connection`.
 
 ### Standalone: Thread Safe Connection
-If you want to use `Hiredis::Connection` in a multi-threaded environment, replace `Hiredis::Connection` with `Hiredis::ThreadSafeConnection`.
+If you want to use `Hiredis::Connection` in a multi-threaded environment, replace `Hiredis::Connection` with `Hiredis::ThreadSafeConnection`.  Clients will be cached based on their thread id, maintaining a persistant pool of threads will be much more efficient than trying to spawn threads on demand.
 
 ``` ruby
 conn = Hiredis::ThreadSafeConnection.new
