@@ -79,6 +79,15 @@ the Ruby built-in `Errno::XYZ` errors will be raised. All other errors
 You can skip loading everything and just load `Hiredis::Connection` by
 requiring `hiredis/connection`.
 
+### Standalone: Thread Safe Connection
+If you want to use `Hiredis::Connection` in a multi-threaded environment, replace `Hiredis::Connection` with `Hiredis::ThreadSafeConnection`.
+
+``` ruby
+conn = Hiredis::ThreadSafeConnection.new
+conn.connect("127.0.0.1", 6379)
+```
+
+
 ### Standalone: Reply parser
 
 Only using hiredis for the reply parser can be very useful in scenarios
