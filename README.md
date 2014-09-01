@@ -80,10 +80,20 @@ You can skip loading everything and just load `Hiredis::Connection` by
 requiring `hiredis/connection`.
 
 ### Standalone: Thread Safe Connection
-If you want to use `Hiredis::Connection` in a multi-threaded environment, replace `Hiredis::Connection` with `Hiredis::ThreadSafeConnection`.  Clients will be cached based on their thread id, maintaining a persistant pool of threads will be much more efficient than trying to spawn threads on demand.
+If you want to use `Hiredis::Connection` in a multi-threaded environment, replace `Hiredis::Connection` with `Hiredis::ThreadSafeConnection`.  All threads have their own independent pipeline; e.g. sending a write on one thread, and a read on another will just cause the second thread to block. 
 
 ``` ruby
 conn = Hiredis::ThreadSafeConnection.new
+conn.connect("127.0.0.1", 6379)
+Thread.new do
+  conn.write ["SET", "hello", "world"]
+end
+```
+
+Connections can be created lazily, but this can be prevented by persisting your thread pool and passing the optional argument `standby_pool_size` to ``Hiredis::ThreadSafeConnection``.  The example below would create 16 connections on initializations and then pass those connections to threads when they first request a write or read.  Note that if you do not persist your threads, this pool will quickly run out and ``Hiredis::ThreadSafeConnection`` will be forced to dynamically connect.
+
+``` ruby
+conn = Hiredis::ThreadSafeConnection standby_pool_size: 16
 conn.connect("127.0.0.1", 6379)
 ```
 
