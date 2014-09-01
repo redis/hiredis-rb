@@ -1,6 +1,5 @@
-# hiredis-rb
-
-[![Build Status](https://travis-ci.org/redis/hiredis-rb.svg?branch=master)](https://travis-ci.org/redis/hiredis-rb)
+# threadsafe-hiredis-rb
+This is a fork of the original hiredis-rb that includes threadsafe support.  Original work is (https://github.com/redis/hiredis-rb)
 
 Ruby extension that wraps [hiredis](http://github.com/redis/hiredis). Both
 the synchronous connection API and a separate protocol reader are supported.
@@ -10,7 +9,7 @@ It is primarily intended to speed up parsing multi bulk replies.
 
 Install with Rubygems:
 
-    gem install hiredis
+    gem install threadsafe-hiredis
 
 ## Usage
 
@@ -23,7 +22,7 @@ To use hiredis from redis-rb, it needs to be available in Ruby's load path.
 Using Bundler, this comes down to adding the following lines:
 
 ``` ruby
-gem "hiredis", "~> 0.4.0"
+gem "threadsafe-hiredis"
 gem "redis", ">= 2.2.0"
 ```
 
