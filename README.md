@@ -1,6 +1,5 @@
-# hiredis-rb
-
-[![Build Status](https://travis-ci.org/redis/hiredis-rb.svg?branch=master)](https://travis-ci.org/redis/hiredis-rb)
+# threadsafe-hiredis-rb
+This is a fork of the original hiredis-rb that includes threadsafe support.  Original work is (https://github.com/redis/hiredis-rb)
 
 Ruby extension that wraps [hiredis](http://github.com/redis/hiredis). Both
 the synchronous connection API and a separate protocol reader are supported.
@@ -10,7 +9,7 @@ It is primarily intended to speed up parsing multi bulk replies.
 
 Install with Rubygems:
 
-    gem install hiredis
+    gem install threadsafe-hiredis
 
 ## Usage
 
@@ -23,7 +22,7 @@ To use hiredis from redis-rb, it needs to be available in Ruby's load path.
 Using Bundler, this comes down to adding the following lines:
 
 ``` ruby
-gem "hiredis", "~> 0.4.0"
+gem "threadsafe-hiredis"
 gem "redis", ">= 2.2.0"
 ```
 
@@ -78,6 +77,25 @@ the Ruby built-in `Errno::XYZ` errors will be raised. All other errors
 
 You can skip loading everything and just load `Hiredis::Connection` by
 requiring `hiredis/connection`.
+
+### Standalone: Thread Safe Connection
+If you want to use `Hiredis::Connection` in a multi-threaded environment, replace `Hiredis::Connection` with `Hiredis::ThreadSafeConnection`.  All threads have their own independent pipeline; e.g. sending a write on one thread, and a read on another will just cause the second thread to block. 
+
+``` ruby
+conn = Hiredis::ThreadSafeConnection.new
+conn.connect("127.0.0.1", 6379)
+Thread.new do
+  conn.write ["SET", "hello", "world"]
+end
+```
+
+Connections can be created lazily, but this can be prevented by persisting your thread pool and passing the optional argument `standby_pool_size` to ``Hiredis::ThreadSafeConnection``.  The example below would create 16 connections on initializations and then pass those connections to threads when they first request a write or read.  Note that if you do not persist your threads, this pool will quickly run out and ``Hiredis::ThreadSafeConnection`` will be forced to dynamically connect.
+
+``` ruby
+conn = Hiredis::ThreadSafeConnection standby_pool_size: 16
+conn.connect("127.0.0.1", 6379)
+```
+
 
 ### Standalone: Reply parser
 
