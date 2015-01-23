@@ -80,9 +80,10 @@ module ConnectionTests
   end
 
   def test_connect_wrong_host
-    assert_raise RuntimeError, /can't resolve/i do
+    ex = assert_raise RuntimeError do
       hiredis.connect("nonexisting", 6379)
     end
+    assert ex.message =~ /(can't resolve)|(name or service not known)/i
   end
 
   def test_connect_wrong_port
