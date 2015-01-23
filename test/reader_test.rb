@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
-require 'test/unit'
+gem 'minitest' unless RUBY_VERSION < '1.9.0'
+require 'minitest/autorun'
 
 require File.expand_path('../../lib/hiredis/ext/reader', __FILE__) unless RUBY_PLATFORM =~ /java/
 require File.expand_path('../../lib/hiredis/ruby/reader', __FILE__)
@@ -150,7 +151,7 @@ module ReaderTests
 end
 
 if defined?(Hiredis::Ruby::Reader)
-  class RubyReaderTest < Test::Unit::TestCase
+  class RubyReaderTest < Minitest::Test
     include ReaderTests
 
     def setup
@@ -160,7 +161,7 @@ if defined?(Hiredis::Ruby::Reader)
 end
 
 if defined?(Hiredis::Ext::Reader)
-  class ExtReaderTest < Test::Unit::TestCase
+  class ExtReaderTest < Minitest::Test
     include ReaderTests
 
     def setup

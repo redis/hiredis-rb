@@ -1,4 +1,5 @@
-require 'test/unit'
+gem 'minitest' unless RUBY_VERSION < '1.9.0'
+require 'minitest/autorun'
 
 require File.expand_path('../../lib/hiredis/ext/connection', __FILE__) unless RUBY_PLATFORM =~ /java/
 require File.expand_path('../../lib/hiredis/ruby/connection', __FILE__)
@@ -80,14 +81,14 @@ module ConnectionTests
   end
 
   def test_connect_wrong_host
-    ex = assert_raise RuntimeError do
+    ex = assert_raises RuntimeError do
       hiredis.connect("nonexisting", 6379)
     end
     assert ex.message =~ /(can't resolve)|(name or service not known)/i
   end
 
   def test_connect_wrong_port
-    assert_raise Errno::ECONNREFUSED do
+    assert_raises Errno::ECONNREFUSED do
       hiredis.connect("localhost", 6380)
     end
   end
@@ -139,13 +140,13 @@ module ConnectionTests
   end
 
   def test_fileno_when_disconnected
-    assert_raise RuntimeError, "not connected" do
+    assert_raises RuntimeError, "not connected" do
       hiredis.fileno
     end
   end
 
   def test_wrong_value_for_timeout
-    assert_raise ArgumentError do
+    assert_raises ArgumentError do
       hiredis.timeout = -10
     end
   end
@@ -154,7 +155,7 @@ module ConnectionTests
     hiredis.timeout = 200_000
 
     t = Time.now
-    assert_raise Errno::ETIMEDOUT do
+    assert_raises Errno::ETIMEDOUT do
       hiredis.connect("1.1.1.1", 59876)
     end
 
@@ -165,7 +166,7 @@ module ConnectionTests
     hiredis.timeout = 1_000_000
 
     t = Time.now
-    assert_raise Errno::ETIMEDOUT do
+    assert_raises Errno::ETIMEDOUT do
       hiredis.connect("1.1.1.1", 59876, 200_000)
     end
 
@@ -187,7 +188,7 @@ module ConnectionTests
   end
 
   def test_read_when_disconnected
-    assert_raise RuntimeError, "not connected" do
+    assert_raises RuntimeError, "not connected" do
       hiredis.read
     end
   end
@@ -205,7 +206,7 @@ module ConnectionTests
       assert_equal "OK", hiredis.read
 
       # Next read should raise
-      assert_raise Errno::ECONNRESET do
+      assert_raises Errno::ECONNRESET do
         hiredis.read
       end
     end
@@ -227,7 +228,7 @@ module ConnectionTests
       hiredis.connect("localhost", DEFAULT_PORT)
       hiredis.timeout = 10_000
 
-      assert_raise Errno::EAGAIN do
+      assert_raises Errno::EAGAIN do
         hiredis.read
       end
     end
@@ -261,7 +262,7 @@ module ConnectionTests
       hiredis.connect("localhost", DEFAULT_PORT)
       hiredis.timeout = 10_000
 
-      assert_raise Errno::EAGAIN do
+      assert_raises Errno::EAGAIN do
         hiredis.read
       end
     end
@@ -317,7 +318,7 @@ module ConnectionTests
   #     # Make request that fills both the remote receive buffer and the local
   #     # send buffer. This assumes that the size of the receive buffer on the
   #     # remote end is equal to our local receive buffer size.
-  #     assert_raise Errno::EAGAIN do
+  #     assert_raises Errno::EAGAIN do
   #       hiredis.write(["x" * rcvbuf * 2])
   #       hiredis.write(["x" * sndbuf * 2])
   #       hiredis.flush
@@ -390,7 +391,7 @@ module ConnectionTests
 end
 
 if defined?(Hiredis::Ruby::Connection)
-  class RubyConnectionTest < Test::Unit::TestCase
+  class RubyConnectionTest < Minitest::Test
     include ConnectionTests
 
     def setup
@@ -401,7 +402,7 @@ if defined?(Hiredis::Ruby::Connection)
 end
 
 if defined?(Hiredis::Ext::Connection)
-  class ExtConnectionTest < Test::Unit::TestCase
+  class ExtConnectionTest < Minitest::Test
     include ConnectionTests
 
     def setup
