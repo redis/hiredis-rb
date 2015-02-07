@@ -1,4 +1,4 @@
-gem 'minitest' unless RUBY_VERSION < '1.9.0'
+gem 'minitest'
 require 'minitest/autorun'
 
 require File.expand_path('../../lib/hiredis/ext/connection', __FILE__) unless RUBY_PLATFORM =~ /java/
