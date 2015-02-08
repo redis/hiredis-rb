@@ -1,3 +1,9 @@
+### 0.6.0 (2015-02-08)
+
+* Update to use new hiredis 0.12
+* Small fixes to make tests work correctly
+* Do not test on 1.8.7, 1.9.2 or ree anymore
+
 ### 0.5.3
 
 * Add license to gemspec (see #28).
