@@ -1,3 +1,7 @@
+### 0.6.1 (2015-12-29)
+
+* Disable compilation of C extension on unsupported platforms (such as Windows)
+
 ### 0.6.0 (2015-02-08)
 
 * Update to use new hiredis 0.12

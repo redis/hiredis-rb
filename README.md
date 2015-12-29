@@ -23,8 +23,8 @@ To use hiredis from redis-rb, it needs to be available in Ruby's load path.
 Using Bundler, this comes down to adding the following lines:
 
 ``` ruby
-gem "hiredis", "~> 0.4.0"
-gem "redis", ">= 2.2.0"
+gem "hiredis", "~> 0.6.0"
+gem "redis", ">= 3.2.0"
 ```
 
 To use hiredis with redis-rb, you need to require `redis/connection/hiredis`
@@ -34,7 +34,7 @@ Gemfile is done by adding a `:require` option to the line adding the redis-rb
 dependency:
 
 ``` ruby
-gem "redis", ">= 2.2.0", :require => ["redis", "redis/connection/hiredis"]
+gem "redis", ">= 3.2.0", :require => ["redis", "redis/connection/hiredis"]
 ```
 
 You can use Redis normally, as you would with the pure Ruby version.
