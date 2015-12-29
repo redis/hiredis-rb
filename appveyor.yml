@@ -5,7 +5,11 @@ environment:
 
 install:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - ruby --version
+  - ruby -e 'p([:engine, RUBY_ENGINE, :platform, RUBY_PLATFORM])'
+  - gem --version
   - gem install bundler --no-document
+  - bundler --version
   - bundle install --retry=3
 
 test_script:
