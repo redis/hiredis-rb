@@ -1,4 +1,5 @@
 language: ruby
+sudo: false
 
 rvm:
   - 1.9.3
@@ -9,4 +10,7 @@ rvm:
 
 notifications:
   email:
-  - badboy@archlinux.us
+    on_success: never
+    recipients:
+      - badboy@archlinux.us
+

@@ -1,0 +1,18 @@
+environment:
+  matrix:
+    - ruby_version: "21"
+    - ruby_version: "22"
+
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - ruby --version
+  - ruby -e 'p([:engine, RUBY_ENGINE, :platform, RUBY_PLATFORM])'
+  - gem --version
+  - gem install bundler --no-document
+  - bundler --version
+  - bundle install --retry=3
+
+test_script:
+  - bundle exec rake
+
+build: off
