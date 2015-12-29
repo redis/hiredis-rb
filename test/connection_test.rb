@@ -1,8 +1,4 @@
-gem 'minitest'
-require 'minitest/autorun'
-
-require File.expand_path('../../lib/hiredis/ext/connection', __FILE__) unless RUBY_PLATFORM =~ /java/
-require File.expand_path('../../lib/hiredis/ruby/connection', __FILE__)
+require_relative 'helper'
 
 module ConnectionTests
 

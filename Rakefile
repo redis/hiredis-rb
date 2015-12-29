@@ -5,7 +5,13 @@ require "rbconfig"
 require "rake/testtask"
 require "rake/extensiontask"
 
-unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
+if RUBY_PLATFORM =~ /java|mswin|mingw/i
+
+  task :rebuild do
+    # no-op
+  end
+
+else
 
   Rake::ExtensionTask.new('hiredis_ext') do |task|
     # Pass --with-foo-config args to extconf.rb
@@ -34,13 +40,9 @@ unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
   # Build from scratch
   task :rebuild => [:clean, :compile]
 
-else
-
-  task :rebuild do
-    # no-op
-  end
-
 end
+
+
 
 task :default => [:rebuild, :test]
 
