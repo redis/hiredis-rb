@@ -10,4 +10,7 @@ rvm:
 
 notifications:
   email:
-  - badboy@archlinux.us
+    on_success: never
+    recipients:
+      - badboy@archlinux.us
+
