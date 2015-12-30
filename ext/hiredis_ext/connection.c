@@ -34,6 +34,8 @@ static void parent_context_mark(redisParentContext *pc) {
             rb_gc_mark(root);
         }
     }
+
+    RB_GC_GUARD(root);
 }
 
 static void parent_context_free(redisParentContext *pc) {

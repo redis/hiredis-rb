@@ -13,7 +13,9 @@ static void *tryParentize(const redisReadTask *task, VALUE v) {
         VALUE parent = (VALUE)task->parent->obj;
         assert(TYPE(parent) == T_ARRAY);
         rb_ary_store(parent,task->idx,v);
+        RB_GC_GUARD(parent);
     }
+
     return (void*)v;
 }
 
