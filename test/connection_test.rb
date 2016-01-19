@@ -79,7 +79,7 @@ module ConnectionTests
   end
 
   def test_connect_wrong_host
-    ex = assert_raises RuntimeError do
+    ex = assert_raises SocketError do
       hiredis.connect("nonexisting", 6379)
     end
     assert ex.message =~ /(can't resolve)|(name or service not known)/i

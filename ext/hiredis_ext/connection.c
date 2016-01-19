@@ -166,6 +166,8 @@ static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
 }
 
 static VALUE connection_generic_connect(VALUE self, redisContext *c, VALUE arg_timeout) {
+    VALUE e_SocketError = rb_const_get(rb_cObject, rb_intern("SocketError"));
+
     redisParentContext *pc;
     struct timeval tv;
     struct timeval *timeout = NULL;
@@ -187,6 +189,8 @@ static VALUE connection_generic_connect(VALUE self, redisContext *c, VALUE arg_t
         if (err == REDIS_ERR_IO) {
             /* Raise native Ruby I/O error */
             rb_sys_fail(0);
+        } else if (err == REDIS_ERR_OTHER) {
+            rb_raise(e_SocketError,"%s",buf);
         } else {
             /* Raise something else */
             rb_raise(rb_eRuntimeError,"%s",buf);
