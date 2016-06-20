@@ -10,7 +10,7 @@ static ID str_force_encoding = 0;
  * Note that the parent should always be of type T_ARRAY. */
 static void *tryParentize(const redisReadTask *task, VALUE v) {
     if (task && task->parent != NULL) {
-        VALUE parent = (VALUE)task->parent->obj;
+        volatile VALUE parent = (VALUE)task->parent->obj;
         assert(TYPE(parent) == T_ARRAY);
         rb_ary_store(parent,task->idx,v);
     }
@@ -18,7 +18,7 @@ static void *tryParentize(const redisReadTask *task, VALUE v) {
 }
 
 static void *createStringObject(const redisReadTask *task, char *str, size_t len) {
-    VALUE v, enc;
+    volatile VALUE v, enc;
     v = rb_str_new(str,len);
 
     /* Force default external encoding if possible. */
@@ -35,12 +35,12 @@ static void *createStringObject(const redisReadTask *task, char *str, size_t len
 }
 
 static void *createArrayObject(const redisReadTask *task, int elements) {
-    VALUE v = rb_ary_new2(elements);
+    volatile VALUE v = rb_ary_new2(elements);
     return tryParentize(task,v);
 }
 
 static void *createIntegerObject(const redisReadTask *task, long long value) {
-    VALUE v = LL2NUM(value);
+    volatile VALUE v = LL2NUM(value);
     return tryParentize(task,v);
 }
 
@@ -62,7 +62,13 @@ redisReplyObjectFunctions redisExtReplyObjectFunctions = {
 };
 
 static void reader_mark(redisReader *reader) {
-    VALUE root = (VALUE)reader->reply;
+    // volatile until rb_gc_mark
+    volatile VALUE root = (VALUE)reader->reply;
+    // FIXME - PCO - checking root for 0 is checkign to see if the value is
+    // Qfalse. I suspect that is not what is intended here. Checking the
+    // redisReader code might clarify. It would be unfortunate if the reply, a
+    // void* was using NULL to indicate not set but that may be the nature of
+    // the redisReader library. It is worth checking anyway.
     if (root != 0 && TYPE(root) == T_ARRAY) rb_gc_mark(root);
 }
 
@@ -85,7 +91,7 @@ static VALUE reader_feed(VALUE klass, VALUE str) {
 
 static VALUE reader_gets(VALUE klass) {
     redisReader *reader;
-    VALUE reply;
+    volatile VALUE reply;
 
     Data_Get_Struct(klass, redisReader, reader);
     if (redisReaderGetReply(reader,(void**)&reply) != REDIS_OK)

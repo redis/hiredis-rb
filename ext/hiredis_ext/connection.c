@@ -27,7 +27,8 @@ static void parent_context_try_free(redisParentContext *pc) {
 }
 
 static void parent_context_mark(redisParentContext *pc) {
-    VALUE root;
+    // volatile until rb_gc_mark
+    volatile VALUE root;
     if (pc->context && pc->context->reader) {
         root = (VALUE)redisReplyReaderGetObject(pc->context->reader);
         if (root != 0 && TYPE(root) == T_ARRAY) {
@@ -448,7 +449,7 @@ static int __get_reply(redisParentContext *pc, VALUE *reply) {
 
 static VALUE connection_read(VALUE self) {
     redisParentContext *pc;
-    VALUE reply;
+    volatile VALUE reply;
 
     Data_Get_Struct(self,redisParentContext,pc);
     if (!pc->context)
