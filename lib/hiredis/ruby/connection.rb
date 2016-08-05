@@ -34,8 +34,6 @@ module Hiredis
             Timeout.timeout(timeout) do
               sock = TCPSocket.new(host, port)
             end
-          rescue SocketError => se
-            raise se.message
           rescue Timeout::Error
             raise Errno::ETIMEDOUT
           end
@@ -50,8 +48,6 @@ module Hiredis
             Timeout.timeout(timeout) do
               sock = UNIXSocket.new(path)
             end
-          rescue SocketError => se
-            raise se.message
           rescue Timeout::Error
             raise Errno::ETIMEDOUT
           end
@@ -76,11 +72,7 @@ module Hiredis
           sock = nil
 
           # Resolve address
-          begin
-            addrinfo = Socket.getaddrinfo(host, port, Socket::AF_UNSPEC, Socket::SOCK_STREAM)
-          rescue SocketError => se
-            raise se.message
-          end
+          addrinfo = Socket.getaddrinfo(host, port, Socket::AF_UNSPEC, Socket::SOCK_STREAM)
 
           addrinfo.each do |_, port, name, addr, af|
             begin
