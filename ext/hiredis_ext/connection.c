@@ -30,7 +30,7 @@ static void parent_context_mark(redisParentContext *pc) {
     // volatile until rb_gc_mark
     volatile VALUE root;
     if (pc->context && pc->context->reader) {
-        root = (VALUE)redisReplyReaderGetObject(pc->context->reader);
+        root = (VALUE)redisReaderGetObject(pc->context->reader);
         if (root != 0 && TYPE(root) == T_ARRAY) {
             rb_gc_mark(root);
         }
