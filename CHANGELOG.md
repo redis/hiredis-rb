@@ -1,3 +1,8 @@
+### 0.6.2 (2018-11-08)
+
+* Update to use mew hiredis 0.14
+* Fix bugs with values being garbage collected while still in use
+
 ### 0.6.1 (2015-12-29)
 
 * Disable compilation of C extension on unsupported platforms (such as Windows)
