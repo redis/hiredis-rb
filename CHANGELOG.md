@@ -1,3 +1,7 @@
+### 0.6.3 (2018-11-08)
+
+* Fix the packaged gem
+
 ### 0.6.2 (2018-11-08)
 
 * Update to use mew hiredis 0.14
