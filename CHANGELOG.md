@@ -4,7 +4,7 @@
 
 ### 0.6.2 (2018-11-08)
 
-* Update to use mew hiredis 0.14
+* Update to use new hiredis 0.14
 * Fix bugs with values being garbage collected while still in use
 
 ### 0.6.1 (2015-12-29)
