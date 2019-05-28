@@ -22,7 +22,11 @@ module Hiredis
       end
 
       def sock
-        @sock ||= Socket.for_fd(fileno)
+        if !@sock
+          @sock = Socket.for_fd(fileno)
+          @sock.autoclose = false
+        end
+        @sock
       end
     end
   end
