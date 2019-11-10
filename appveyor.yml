@@ -8,7 +8,7 @@ install:
   - ruby --version
   - ruby -e 'p([:engine, RUBY_ENGINE, :platform, RUBY_PLATFORM])'
   - gem --version
-  - gem install bundler --no-document
+  - gem install bundler:1.17.3 --no-document
   - bundler --version
   - bundle install --retry=3
 
