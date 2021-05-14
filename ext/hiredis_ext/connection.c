@@ -2,6 +2,14 @@
 #include <errno.h>
 #include "hiredis_ext.h"
 
+struct redisSSLContext {
+    /* Associated OpenSSL SSL_CTX as created by redisCreateSSLContext() */
+    SSL_CTX *ssl_ctx;
+
+    /* Requested SNI, or NULL */
+    char *server_name;
+};
+
 typedef struct redisParentContext {
     redisContext *context;
     struct timeval *timeout;
@@ -262,6 +270,56 @@ static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
     return connection_generic_connect(self,c,arg_timeout);
 }
 
+static VALUE connection_connect_ssl(int argc, VALUE *argv, VALUE self) {
+    redisContext *c;
+    VALUE arg_host = Qnil;
+    VALUE arg_port = Qnil;
+    VALUE arg_timeout = Qnil;
+
+    redisSSLContext *ssl;
+    redisSSLContextError ssl_error;
+
+    if (argc == 2 || argc == 3) {
+        arg_host = argv[0];
+        arg_port = argv[1];
+
+        if (argc == 3) {
+            arg_timeout = argv[2];
+
+            /* Sanity check */
+            if (NUM2INT(arg_timeout) <= 0) {
+                rb_raise(rb_eArgError, "timeout should be positive");
+            }
+        }
+    } else {
+        rb_raise(rb_eArgError, "invalid number of arguments");
+    }
+
+    redisInitOpenSSL();
+    ssl = redisCreateSSLContext(NULL, NULL, NULL, NULL, StringValuePtr(arg_host), &ssl_error);
+    SSL_CTX_set_verify(ssl->ssl_ctx, SSL_VERIFY_NONE, NULL);
+
+    redisOptions options = {0};
+    REDIS_OPTIONS_SET_TCP(&options, StringValuePtr(arg_host), NUM2INT(arg_port));
+    c = redisConnectWithOptions(&options);
+
+    if (c == NULL || c->err) {
+        if (c) {
+            redisFree(c);
+            rb_raise(rb_eRuntimeError, "Basic connection to Redis failed! Error: %s\n", c->errstr);
+        } else {
+            rb_raise(rb_eRuntimeError, "Basic connection to Redis failed! Error: can't allocate redis context");
+        }
+    }
+
+    if (redisInitiateSSLWithContext(c, ssl) != REDIS_OK) {
+        redisFree(c);
+        rb_raise(rb_eRuntimeError, "SSL connection to Redis failed! Error: %s\n", c->errstr);
+    }
+
+    return connection_generic_connect(self, c, arg_timeout);
+}
+
 static VALUE connection_connect_unix(int argc, VALUE *argv, VALUE self) {
     redisContext *c;
     VALUE arg_path = Qnil;
@@ -503,6 +561,7 @@ void InitConnection(VALUE mod) {
     rb_global_variable(&klass_connection);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
     rb_define_method(klass_connection, "connect", connection_connect, -1);
+    rb_define_method(klass_connection, "connect_ssl", connection_connect_ssl, -1);
     rb_define_method(klass_connection, "connect_unix", connection_connect_unix, -1);
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
