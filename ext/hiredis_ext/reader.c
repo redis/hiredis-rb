@@ -34,7 +34,7 @@ static void *createStringObject(const redisReadTask *task, char *str, size_t len
     return tryParentize(task,v);
 }
 
-static void *createArrayObject(const redisReadTask *task, int elements) {
+static void *createArrayObject(const redisReadTask *task, size_t elements) {
     volatile VALUE v = rb_ary_new2(elements);
     return tryParentize(task,v);
 }
@@ -44,8 +44,17 @@ static void *createIntegerObject(const redisReadTask *task, long long value) {
     return tryParentize(task,v);
 }
 
+static void *createDoubleObject(const redisReadTask *task, double value, char *str, size_t len) {
+    volatile VALUE v = DBL2NUM(value);
+    return tryParentize(task,v);
+}
+
 static void *createNilObject(const redisReadTask *task) {
     return tryParentize(task,Qnil);
+}
+
+static void *createBoolObject(const redisReadTask *task, int bval) {
+    return bval == 0 ? tryParentize(task,Qfalse) : tryParentize(task,Qtrue);
 }
 
 static void freeObject(void *ptr) {
@@ -57,7 +66,9 @@ redisReplyObjectFunctions redisExtReplyObjectFunctions = {
     createStringObject,
     createArrayObject,
     createIntegerObject,
+    createDoubleObject,
     createNilObject,
+    createBoolObject,
     freeObject
 };
 
