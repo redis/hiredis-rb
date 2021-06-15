@@ -320,6 +320,7 @@ static VALUE connection_connect_ssl(int argc, VALUE *argv, VALUE self) {
 
     redisOptions options = {0};
     REDIS_OPTIONS_SET_TCP(&options, StringValuePtr(arg_host), NUM2INT(arg_port));
+    options.options |= REDIS_OPT_NONBLOCK;
     options.connect_timeout = timeout;
     c = redisConnectWithOptions(&options);
 
