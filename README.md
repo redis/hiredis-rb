@@ -1,6 +1,6 @@
 # hiredis-rb
 
-[![Build Status](https://travis-ci.org/redis/hiredis-rb.svg?branch=master)](https://travis-ci.org/redis/hiredis-rb)
+[![Build Status](https://github.com/redis/hiredis-rb/workflows/Test/badge.svg)](https://github.com/redis/hiredis-rb/actions)
 
 Ruby extension that wraps [hiredis](http://github.com/redis/hiredis). Both
 the synchronous connection API and a separate protocol reader are supported.
