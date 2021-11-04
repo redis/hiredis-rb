@@ -282,6 +282,7 @@ module ConnectionTests
   end
 
   def test_recover_from_partial_write
+    skip "`#flush` doesn't work on hi-redis 1.0. See https://github.com/redis/hiredis/issues/975"
     listen do |server|
       hiredis.connect("localhost", 6380)
 
@@ -325,6 +326,7 @@ module ConnectionTests
   # end
 
   def test_eagain_on_write_followed_by_remote_drain
+    skip "`#flush` doesn't work on hi-redis 1.0. See https://github.com/redis/hiredis/issues/975"
     listen do |server|
       hiredis.connect("localhost", 6380)
       hiredis.timeout = 100_000
