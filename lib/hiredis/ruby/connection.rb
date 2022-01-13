@@ -5,6 +5,7 @@ require "hiredis/version"
 module Hiredis
   module Ruby
     class Connection
+      EMPTY_ARRAY = [].freeze
 
       if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
 
@@ -123,14 +124,14 @@ module Hiredis
           data.force_encoding("binary") if data.respond_to?(:force_encoding)
 
           begin
-            nwritten = @sock.write_nonblock(data)
+            nwritten = sock.write_nonblock(data)
 
             while nwritten < string_size(data)
               data = data[nwritten..-1]
-              nwritten = @sock.write_nonblock(data)
+              nwritten = sock.write_nonblock(data)
             end
           rescue Errno::EAGAIN
-            if IO.select([], [@sock], [], timeout)
+            if _wait_writable(sock, timeout)
               # Writable, try again
               retry
             else
@@ -140,13 +141,29 @@ module Hiredis
           end
         end
 
+        def _wait_readable(io, timeout)
+          if @fiber_scheduler_supported && Fiber.scheduler
+            Fiber.scheduler.io_wait(io, IO::READABLE, timeout)
+          else
+            IO.select([io], EMPTY_ARRAY, EMPTY_ARRAY, timeout)
+          end
+        end
+
+        def _wait_writable(io, timeout)
+          if @fiber_scheduler_supported && Fiber.scheduler
+            Fiber.scheduler.io_wait(io, IO::WRITABLE, timeout)
+          else
+            IO.select(EMPTY_ARRAY, [io], EMPTY_ARRAY, timeout)
+          end
+        end
+
         def _connect_sockaddr(af, sockaddr, timeout)
           sock = Socket.new(af, Socket::SOCK_STREAM, 0)
 
           begin
             sock.connect_nonblock(sockaddr)
           rescue Errno::EINPROGRESS
-            if IO.select(nil, [sock], nil, timeout)
+            if _wait_writable(sock, timeout)
               # Writable, check for errors
               optval = sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
               errno = optval.unpack("i").first
@@ -176,6 +193,7 @@ module Hiredis
       def initialize
         @sock = nil
         @timeout = nil
+        @fiber_scheduler_supported = defined?(Fiber.scheduler)
       end
 
       def connected?
@@ -267,7 +285,7 @@ module Hiredis
           begin
             @reader.feed @sock.read_nonblock(1024)
           rescue Errno::EAGAIN
-            if IO.select([@sock], [], [], @timeout)
+            if _wait_readable(@sock, @timeout)
               # Readable, try again
               retry
             else
