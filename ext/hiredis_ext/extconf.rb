@@ -1,5 +1,11 @@
 require 'mkmf'
 
+def config_system_libraries?
+  enable_config("system-libraries", ENV.key?("USE_SYSTEM_LIBRARIES")) do |_, default|
+    arg_config("--use-system-libraries", default)
+  end
+end
+
 build_hiredis = true
 unless have_header('sys/socket.h')
   puts "Could not find <sys/socket.h> (Likely Windows)."
@@ -27,15 +33,21 @@ else
 end
 
 if build_hiredis
-  # Make sure hiredis is built...
-  Dir.chdir(hiredis_dir) do
-    success = system("#{make_program} static")
-    raise "Building hiredis failed" if !success
-  end
+  if config_system_libraries?
+    # Make sure that hiredis development modules are installed ...
+    find_header("hiredis.h", *["", "hiredis"].map {|p| File.join(RbConfig::CONFIG["includedir"], p) })
+    have_library("hiredis")
+  else
+    # Make sure hiredis is built...
+    Dir.chdir(hiredis_dir) do
+      success = system("#{make_program} static")
+      raise "Building hiredis failed" if !success
+    end
 
-  # Statically link to hiredis (mkmf can't do this for us)
-  $CFLAGS << " -I#{hiredis_dir}"
-  $LDFLAGS << " #{hiredis_dir}/libhiredis.a"
+    # Statically link to hiredis (mkmf can't do this for us)
+    $CFLAGS << " -I#{hiredis_dir}"
+    $LDFLAGS << " #{hiredis_dir}/libhiredis.a"
+  end
 
   have_func("rb_thread_fd_select")
   create_makefile('hiredis/ext/hiredis_ext')
