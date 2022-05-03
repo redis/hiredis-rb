@@ -82,7 +82,7 @@ module ConnectionTests
     ex = assert_raises RuntimeError do
       hiredis.connect("nonexisting", 6379)
     end
-    assert ex.message =~ /(can't resolve)|(name or service not known)|(nodename nor servname provided, or not known)/i
+    assert ex.message =~ /(can't resolve)|(name or service not known)|(nodename nor servname provided, or not known)|(Temporary failure in name resolution)/i
   end
 
   def test_connect_wrong_port
@@ -282,6 +282,7 @@ module ConnectionTests
   end
 
   def test_recover_from_partial_write
+    skip "`#flush` doesn't work on hi-redis 1.0. See https://github.com/redis/hiredis/issues/975"
     listen do |server|
       hiredis.connect("localhost", 6380)
 
@@ -325,6 +326,7 @@ module ConnectionTests
   # end
 
   def test_eagain_on_write_followed_by_remote_drain
+    skip "`#flush` doesn't work on hi-redis 1.0. See https://github.com/redis/hiredis/issues/975"
     listen do |server|
       hiredis.connect("localhost", 6380)
       hiredis.timeout = 100_000
