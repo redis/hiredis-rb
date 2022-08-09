@@ -15,6 +15,7 @@ module ConnectionTests
   class Netcat
     def initialize(port)
       @listener = TCPServer.new(port)
+      @sock = nil
     end
 
     def close
