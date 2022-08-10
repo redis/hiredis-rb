@@ -1,6 +1,8 @@
 #include <sys/socket.h>
 #include <errno.h>
+#include <ruby.h>
 #include "hiredis_ext.h"
+#include "hiredis_ssl.h"
 
 typedef struct redisParentContext {
     redisContext *context;
@@ -236,6 +238,10 @@ sys_fail:
     rb_sys_fail(0);
 }
 
+static char *nullable_cstr_arg(VALUE arg) {
+    return NIL_P(arg) ? NULL : StringValueCStr(arg);
+}
+
 static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
     redisContext *c;
     VALUE arg_host = Qnil;
@@ -259,6 +265,81 @@ static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
     }
 
     c = redisConnectNonBlock(StringValuePtr(arg_host), NUM2INT(arg_port));
+    return connection_generic_connect(self,c,arg_timeout);
+}
+
+static VALUE connection_connect_ssl(int argc, VALUE *argv, VALUE self) {
+    redisContext *c;
+    VALUE arg_host = Qnil;
+    VALUE arg_port = Qnil;
+    VALUE arg_timeout = Qnil;
+    VALUE ca_file = Qnil;
+    VALUE ca_path = Qnil;
+    VALUE client_ca = Qnil;
+    VALUE client_key = Qnil;
+
+    redisSSLContext *ssl_context;
+    redisSSLContextError ssl_error;
+
+    if (argc >= 2 && argc <= 4) {
+        arg_host = argv[0];
+        arg_port = argv[1];
+
+        if (argc == 3) {
+            arg_timeout = argv[2];
+
+            /* Sanity check */
+            if (NUM2INT(arg_timeout) <= 0) {
+                rb_raise(rb_eArgError, "timeout should be positive");
+            }
+        }
+
+        if (argc == 4) {
+            // See OpenSSL::SSL::SSLContext for available options. Supported options:
+            // ca_file, ca_path, client_ca, key
+            VALUE ssl_options = argv[3];
+
+            if (ssl_options != Qnil) {
+                ca_file = rb_hash_aref(ssl_options, ID2SYM(rb_intern("ca_file")));
+                ca_path = rb_hash_aref(ssl_options, ID2SYM(rb_intern("ca_path")));
+                client_ca = rb_hash_aref(ssl_options, ID2SYM(rb_intern("client_ca")));
+                client_key = rb_hash_aref(ssl_options, ID2SYM(rb_intern("client_key")));
+            }
+        }
+    } else {
+        rb_raise(rb_eArgError, "invalid number of arguments");
+    }
+
+    redisInitOpenSSL();
+    ssl_context = redisCreateSSLContext(
+        nullable_cstr_arg(ca_file),
+        nullable_cstr_arg(ca_path),
+        nullable_cstr_arg(client_ca),
+        nullable_cstr_arg(client_key),
+        nullable_cstr_arg(arg_host),
+        &ssl_error);
+
+    if (ssl_context == NULL || ssl_error != 0) {
+         rb_raise(rb_eRuntimeError, "error creating SSL context: %s",
+            (ssl_error != 0) ? redisSSLContextGetError(ssl_error) : "unknown error");
+    }
+
+    c = redisConnectNonBlock(StringValuePtr(arg_host), NUM2INT(arg_port));
+
+    if (c == NULL || c->err) {
+        if (c) {
+            redisFree(c);
+            rb_raise(rb_eRuntimeError, "Basic connection to Redis failed! Error: %s\n", c->errstr);
+        } else {
+            rb_raise(rb_eRuntimeError, "Basic connection to Redis failed! Error: can't allocate redis context");
+        }
+    }
+
+    if (redisInitiateSSLWithContext(c, ssl_context) != REDIS_OK) {
+        redisFree(c);
+        rb_raise(rb_eRuntimeError, "SSL connection to Redis failed! Error: %s\n", c->errstr);
+    }
+
     return connection_generic_connect(self,c,arg_timeout);
 }
 
@@ -503,6 +584,7 @@ void InitConnection(VALUE mod) {
     rb_global_variable(&klass_connection);
     rb_define_alloc_func(klass_connection, connection_parent_context_alloc);
     rb_define_method(klass_connection, "connect", connection_connect, -1);
+    rb_define_method(klass_connection, "connect_ssl", connection_connect_ssl, -1);
     rb_define_method(klass_connection, "connect_unix", connection_connect_unix, -1);
     rb_define_method(klass_connection, "connected?", connection_is_connected, 0);
     rb_define_method(klass_connection, "disconnect", connection_disconnect, 0);
