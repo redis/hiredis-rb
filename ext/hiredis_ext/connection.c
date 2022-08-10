@@ -279,7 +279,7 @@ static VALUE connection_connect_ssl(int argc, VALUE *argv, VALUE self) {
     VALUE client_key = Qnil;
 
     redisSSLContext *ssl_context;
-    redisSSLContextError ssl_error;
+    redisSSLContextError ssl_error = REDIS_SSL_CTX_NONE;
 
     if (argc >= 2 && argc <= 4) {
         arg_host = argv[0];
@@ -319,7 +319,7 @@ static VALUE connection_connect_ssl(int argc, VALUE *argv, VALUE self) {
         nullable_cstr_arg(arg_host),
         &ssl_error);
 
-    if (ssl_context == NULL || ssl_error != 0) {
+    if (ssl_context == NULL || ssl_error != REDIS_SSL_CTX_NONE) {
          rb_raise(rb_eRuntimeError, "error creating SSL context: %s",
             (ssl_error != 0) ? redisSSLContextGetError(ssl_error) : "unknown error");
     }
