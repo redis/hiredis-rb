@@ -7,16 +7,16 @@
 
 require "rubygems"
 require "benchmark"
-require "redis/connection/hiredis"
-require "redis/connection/ruby"
+#require "redis/connection/hiredis"
+#require "redis/connection/ruby"
 require "redis"
 
 DB = 9
 
-$ruby = Redis.new(:db => DB)
-$ruby.client.instance_variable_set(:@connection,Redis::Connection::Ruby.new)
-$hiredis = Redis.new(:db => DB)
-$hiredis.client.instance_variable_set(:@connection,Redis::Connection::Hiredis.new)
+$ruby = Redis.new(:db => DB, :driver => :ruby)
+#$ruby.client.instance_variable_set(:@connection,Redis::Connection::Ruby.new)
+$hiredis = Redis.new(:db => DB, :driver => :hiredis)
+#$hiredis.client.instance_variable_set(:@connection,Redis::Connection::Hiredis.new)
 
 # make sure both are connected
 $ruby.ping
@@ -42,7 +42,7 @@ def pipeline(b,num,size,title,cmd)
   x = without_gc {
     b.report("redis-rb: %2dx #{title} pipeline, #{num} times" % size) {
       num.times {
-        $ruby.client.call_pipelined(commands)
+        $ruby.pipelined { |rp| commands.each { |rc| rp.call(rc) } }
       }
     }
   }
@@ -50,7 +50,7 @@ def pipeline(b,num,size,title,cmd)
   y = without_gc {
     b.report(" hiredis: %2dx #{title} pipeline, #{num} times" % size) {
       num.times {
-        $hiredis.client.call_pipelined(commands)
+        $hiredis.pipelined { |hp| commands.each { |hc| hp.call(hc) } }
       }
     }
   }
