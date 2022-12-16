@@ -2,6 +2,63 @@
 #include <errno.h>
 #include "hiredis_ext.h"
 
+#ifdef HAVE_RUBY_FIBER_SCHEDULER_H
+#include "ruby/fiber/scheduler.h"
+#include "ruby/io.h"
+
+// TODO: I copied these from Ruby; are they supposed to be exposed as part of the C extension API?
+
+#define FMODE_PREP (1<<16)
+
+static int
+io_check_tty(rb_io_t *fptr)
+{
+    int t = isatty(fptr->fd);
+    if (t)
+        fptr->mode |= FMODE_TTY|FMODE_DUPLEX;
+    return t;
+}
+
+static VALUE
+io_alloc(VALUE klass)
+{
+    NEWOBJ_OF(io, struct RFile, klass, T_FILE);
+
+    io->fptr = 0;
+
+    return (VALUE)io;
+}
+
+static VALUE
+prep_io(int fd, int fmode, VALUE klass, const char *path)
+{
+    rb_io_t *fp;
+    VALUE io = io_alloc(klass);
+
+    MakeOpenFile(io, fp);
+    fp->self = io;
+    fp->fd = fd;
+    fp->mode = fmode;
+    if (!io_check_tty(fp)) {
+#ifdef __CYGWIN__
+	fp->mode |= FMODE_BINMODE;
+	setmode(fd, O_BINARY);
+#endif
+    }
+    if (path) fp->pathv = rb_obj_freeze(rb_str_new_cstr(path));
+    rb_update_max_fd(fd);
+
+    return io;
+}
+
+static VALUE
+io_from_fd(int fd)
+{
+    return prep_io(fd, FMODE_PREP, rb_cIO, NULL);
+}
+
+#endif
+
 typedef struct redisParentContext {
     redisContext *context;
     struct timeval *timeout;
@@ -107,6 +164,26 @@ typedef fd_set _fdset_t;
 #endif
 
 static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
+#ifdef HAVE_RUBY_FIBER_SCHEDULER_H
+    VALUE scheduler = rb_fiber_scheduler_current();
+    if (scheduler != Qnil) {
+        VALUE result = rb_fiber_scheduler_io_wait(scheduler,
+                                                  io_from_fd(fd),
+                                                  RB_UINT2NUM(RUBY_IO_READABLE),
+                                                  rb_fiber_scheduler_make_timeout((struct timeval *) timeout));
+
+        if (RTEST(result)) {
+            if (isset) {
+                *isset = 1;
+            }
+            return 0;
+        } else {
+            // timeout
+            return -1;
+        }
+    }
+#endif
+
     struct timeval to;
     struct timeval *toptr = NULL;
 
@@ -137,6 +214,25 @@ static int __wait_readable(int fd, const struct timeval *timeout, int *isset) {
 }
 
 static int __wait_writable(int fd, const struct timeval *timeout, int *isset) {
+#ifdef HAVE_RUBY_FIBER_SCHEDULER_H
+    VALUE scheduler = rb_fiber_scheduler_current();
+    if (scheduler != Qnil) {
+        VALUE result = rb_fiber_scheduler_io_wait(scheduler,
+                                                  io_from_fd(fd),
+                                                  RB_UINT2NUM(RUBY_IO_WRITABLE),
+                                                  rb_fiber_scheduler_make_timeout((struct timeval *) timeout));
+        if (RTEST(result)) {
+            if (isset) {
+                *isset = 1;
+            }
+            return 0;
+        } else {
+            // timeout
+            return -1;
+        }
+    }
+#endif
+
     struct timeval to;
     struct timeval *toptr = NULL;
 
@@ -236,6 +332,7 @@ sys_fail:
     rb_sys_fail(0);
 }
 
+// entrypoint for Driver#connect
 static VALUE connection_connect(int argc, VALUE *argv, VALUE self) {
     redisContext *c;
     VALUE arg_host = Qnil;
